@@ -9,7 +9,6 @@ import { useShallow } from "zustand/react/shallow";
 import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/community")({
-  ssr: false,
   component: CommunityPage,
 });
 

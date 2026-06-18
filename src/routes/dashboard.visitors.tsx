@@ -13,7 +13,6 @@ import { QrCode } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/visitors")({
-  ssr: false,
   component: VisitorsPage,
 });
 

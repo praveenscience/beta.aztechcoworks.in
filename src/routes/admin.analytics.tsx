@@ -5,7 +5,6 @@ import { useStore, inr } from "@/lib/store";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 export const Route = createFileRoute("/admin/analytics")({
-  ssr: false,
   component: Analytics,
 });
 

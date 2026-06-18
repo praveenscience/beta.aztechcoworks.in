@@ -13,7 +13,6 @@ import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/forms")({
-  ssr: false,
   component: FormsBuilder,
 });
 

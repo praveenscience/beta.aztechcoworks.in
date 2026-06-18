@@ -22,7 +22,6 @@ import { useStore, unsplash, whatsappLink, inr } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
 export const Route = createFileRoute("/")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Aztech Co-Works — Coworking & Managed Offices in Coimbatore" },

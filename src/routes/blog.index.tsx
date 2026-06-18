@@ -6,7 +6,6 @@ import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { useStore, unsplash } from "@/lib/store";
 
 export const Route = createFileRoute("/blog/")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Blog — Aztech Co-Works" },

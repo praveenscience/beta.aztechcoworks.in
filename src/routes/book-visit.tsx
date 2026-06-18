@@ -17,7 +17,6 @@ import { toast } from "sonner";
 const searchSchema = z.object({ branch: z.string().optional() });
 
 export const Route = createFileRoute("/book-visit")({
-  ssr: false,
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [

@@ -5,7 +5,6 @@ import { useStore } from "@/lib/store";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 export const Route = createFileRoute("/staff/marketing")({
-  ssr: false,
   component: MarketingPage,
 });
 

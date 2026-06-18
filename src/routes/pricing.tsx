@@ -12,7 +12,6 @@ import { useStore, inr, seatTypeLabels } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
 export const Route = createFileRoute("/pricing")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Pricing — Aztech Co-Works Coimbatore" },

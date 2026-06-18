@@ -11,7 +11,6 @@ import { ArrowRight, Sparkles, User } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
   head: () => ({
     meta: [{ title: "Sign in — Aztech Co-Works" }],
   }),

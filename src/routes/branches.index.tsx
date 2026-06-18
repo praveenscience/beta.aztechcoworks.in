@@ -8,7 +8,6 @@ import { useStore, unsplash } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
 export const Route = createFileRoute("/branches/")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Branches — Aztech Co-Works (5 locations in Coimbatore)" },

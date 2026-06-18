@@ -12,7 +12,6 @@ import { useShallow } from "zustand/react/shallow";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/membership")({
-  ssr: false,
   component: MembershipPage,
 });
 

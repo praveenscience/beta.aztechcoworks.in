@@ -10,7 +10,6 @@ import { LogIn, LogOut, ScanLine, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/staff/reception")({
-  ssr: false,
   component: Reception,
 });
 

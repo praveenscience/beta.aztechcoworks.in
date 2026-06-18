@@ -12,7 +12,6 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/users")({
-  ssr: false,
   component: AdminUsers,
 });
 

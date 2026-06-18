@@ -9,7 +9,6 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/invoices")({
-  ssr: false,
   component: InvoicesPage,
 });
 

@@ -13,7 +13,6 @@ import { Plus, Trash2, Workflow as WfIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/workflows")({
-  ssr: false,
   component: WorkflowsPage,
 });
 

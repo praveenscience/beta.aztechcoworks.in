@@ -8,7 +8,6 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/staff/finance")({
-  ssr: false,
   component: FinancePage,
 });
 

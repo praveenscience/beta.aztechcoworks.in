@@ -13,7 +13,6 @@ import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/bookings")({
-  ssr: false,
   component: BookingsPage,
 });
 

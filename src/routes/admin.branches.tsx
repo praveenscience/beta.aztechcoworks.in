@@ -14,7 +14,6 @@ import { Plus, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/branches")({
-  ssr: false,
   component: AdminBranches,
 });
 

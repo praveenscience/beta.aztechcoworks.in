@@ -8,7 +8,6 @@ import { useShallow } from "zustand/react/shallow";
 import { Calendar, QrCode, Receipt, Gift, Building2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/")({
-  ssr: false,
   component: MemberOverview,
 });
 

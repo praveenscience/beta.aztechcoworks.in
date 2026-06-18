@@ -8,7 +8,6 @@ import { Copy, Gift, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/referrals")({
-  ssr: false,
   component: ReferralsPage,
 });
 

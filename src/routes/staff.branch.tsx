@@ -7,7 +7,6 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export const Route = createFileRoute("/staff/branch")({
-  ssr: false,
   component: BranchOps,
 });
 

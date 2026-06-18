@@ -13,7 +13,6 @@ import { useStore, inr, type Plan, type SeatType } from "@/lib/store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/pricing")({
-  ssr: false,
   component: AdminPricing,
 });
 

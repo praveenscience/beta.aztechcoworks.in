@@ -40,9 +40,6 @@ import { Route as AdminBranchesRouteImport } from './routes/admin.branches'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as StaffSalesIndexRouteImport } from './routes/staff.sales.index'
 import { Route as StaffSalesLeadIdRouteImport } from './routes/staff.sales.$leadId'
-import { Route as ApiMockPlansRouteImport } from './routes/api/mock/plans'
-import { Route as ApiMockLeadsRouteImport } from './routes/api/mock/leads'
-import { Route as ApiMockBranchesRouteImport } from './routes/api/mock/branches'
 
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
@@ -199,21 +196,6 @@ const StaffSalesLeadIdRoute = StaffSalesLeadIdRouteImport.update({
   path: '/sales/$leadId',
   getParentRoute: () => StaffRoute,
 } as any)
-const ApiMockPlansRoute = ApiMockPlansRouteImport.update({
-  id: '/api/mock/plans',
-  path: '/api/mock/plans',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiMockLeadsRoute = ApiMockLeadsRouteImport.update({
-  id: '/api/mock/leads',
-  path: '/api/mock/leads',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiMockBranchesRoute = ApiMockBranchesRouteImport.update({
-  id: '/api/mock/branches',
-  path: '/api/mock/branches',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -245,9 +227,6 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/branches/': typeof BranchesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/api/mock/branches': typeof ApiMockBranchesRoute
-  '/api/mock/leads': typeof ApiMockLeadsRoute
-  '/api/mock/plans': typeof ApiMockPlansRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
   '/staff/sales/': typeof StaffSalesIndexRoute
 }
@@ -280,9 +259,6 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/branches': typeof BranchesIndexRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/api/mock/branches': typeof ApiMockBranchesRoute
-  '/api/mock/leads': typeof ApiMockLeadsRoute
-  '/api/mock/plans': typeof ApiMockPlansRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
   '/staff/sales': typeof StaffSalesIndexRoute
 }
@@ -317,9 +293,6 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/branches/': typeof BranchesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/api/mock/branches': typeof ApiMockBranchesRoute
-  '/api/mock/leads': typeof ApiMockLeadsRoute
-  '/api/mock/plans': typeof ApiMockPlansRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
   '/staff/sales/': typeof StaffSalesIndexRoute
 }
@@ -355,9 +328,6 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/branches/'
     | '/dashboard/'
-    | '/api/mock/branches'
-    | '/api/mock/leads'
-    | '/api/mock/plans'
     | '/staff/sales/$leadId'
     | '/staff/sales/'
   fileRoutesByTo: FileRoutesByTo
@@ -390,9 +360,6 @@ export interface FileRouteTypes {
     | '/blog'
     | '/branches'
     | '/dashboard'
-    | '/api/mock/branches'
-    | '/api/mock/leads'
-    | '/api/mock/plans'
     | '/staff/sales/$leadId'
     | '/staff/sales'
   id:
@@ -426,9 +393,6 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/branches/'
     | '/dashboard/'
-    | '/api/mock/branches'
-    | '/api/mock/leads'
-    | '/api/mock/plans'
     | '/staff/sales/$leadId'
     | '/staff/sales/'
   fileRoutesById: FileRoutesById
@@ -446,9 +410,6 @@ export interface RootRouteChildren {
   BranchesSlugRoute: typeof BranchesSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   BranchesIndexRoute: typeof BranchesIndexRoute
-  ApiMockBranchesRoute: typeof ApiMockBranchesRoute
-  ApiMockLeadsRoute: typeof ApiMockLeadsRoute
-  ApiMockPlansRoute: typeof ApiMockPlansRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -670,27 +631,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffSalesLeadIdRouteImport
       parentRoute: typeof StaffRoute
     }
-    '/api/mock/plans': {
-      id: '/api/mock/plans'
-      path: '/api/mock/plans'
-      fullPath: '/api/mock/plans'
-      preLoaderRoute: typeof ApiMockPlansRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/mock/leads': {
-      id: '/api/mock/leads'
-      path: '/api/mock/leads'
-      fullPath: '/api/mock/leads'
-      preLoaderRoute: typeof ApiMockLeadsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/mock/branches': {
-      id: '/api/mock/branches'
-      path: '/api/mock/branches'
-      fullPath: '/api/mock/branches'
-      preLoaderRoute: typeof ApiMockBranchesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -771,20 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   BranchesSlugRoute: BranchesSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   BranchesIndexRoute: BranchesIndexRoute,
-  ApiMockBranchesRoute: ApiMockBranchesRoute,
-  ApiMockLeadsRoute: ApiMockLeadsRoute,
-  ApiMockPlansRoute: ApiMockPlansRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

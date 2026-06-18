@@ -14,7 +14,6 @@ import { Building2, Rocket, Users, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/corporate")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Corporate Workspace Solutions in Coimbatore | Aztech Co-Works" },

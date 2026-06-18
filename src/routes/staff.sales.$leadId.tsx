@@ -16,7 +16,6 @@ import { toast } from "sonner";
 const STAGES: LeadStage[] = ["new", "contacted", "qualified", "site_visit", "proposal", "negotiation", "won", "lost"];
 
 export const Route = createFileRoute("/staff/sales/$leadId")({
-  ssr: false,
   component: LeadDetail,
 });
 
