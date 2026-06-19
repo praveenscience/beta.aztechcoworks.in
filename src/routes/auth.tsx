@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { SiteHeader, SiteFooter, dashboardHomeFor } from "@/components/site-chrome";
-import { useStore, roleLabels, type Role } from "@/lib/store";
 import { ArrowRight, Sparkles, User } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import type { Role } from "@/types";
+import { roleLabels } from "@/lib/format";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({

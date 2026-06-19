@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useStore, stageLabels, inr, type LeadStage, whatsappLink } from "@/lib/store";
 import { MessageCircle, ArrowRight, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useStore } from "@/lib/store";
+import type { LeadStage } from "@/types";
+import { stageLabels, inr, whatsappLink } from "@/lib/format";
 
 export const Route = createFileRoute("/staff/sales/")({
   component: SalesPipeline,

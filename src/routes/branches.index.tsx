@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { useStore, unsplash } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
+import { useStore } from "@/lib/store";
+import { unsplash } from "@/lib/format";
 
 export const Route = createFileRoute("/branches/")({
   head: () => ({

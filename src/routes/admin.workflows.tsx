@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useStore, type WorkflowRule } from "@/lib/store";
 import { Plus, Trash2, Workflow as WfIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import type { WorkflowRule } from "@/types";
 
 export const Route = createFileRoute("/admin/workflows")({
   component: WorkflowsPage,

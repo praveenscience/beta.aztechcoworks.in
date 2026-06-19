@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { useStore, type Branch, unsplash } from "@/lib/store";
 import { Plus, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import type { Branch } from "@/types";
+import { unsplash } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/branches")({
   component: AdminBranches,

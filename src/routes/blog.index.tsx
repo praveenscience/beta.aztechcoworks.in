@@ -3,7 +3,8 @@ import { Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { useStore, unsplash } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { unsplash } from "@/lib/format";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({

@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore, inr } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useStore } from "@/lib/store";
+import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/staff/branch")({
   component: BranchOps,

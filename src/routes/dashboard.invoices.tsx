@@ -3,10 +3,11 @@ import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useStore, inr } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/invoices")({
   component: InvoicesPage,

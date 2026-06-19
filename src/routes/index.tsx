@@ -18,8 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { useStore, unsplash, whatsappLink, inr } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
+import { useStore } from "@/lib/store";
+import { unsplash, whatsappLink, inr } from "@/lib/format";
 
 export const Route = createFileRoute("/")({
   head: () => ({

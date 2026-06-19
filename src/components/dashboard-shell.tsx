@@ -1,5 +1,4 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useStore, roleLabels, type Role } from "@/lib/store";
 import { dashboardHomeFor } from "@/components/site-chrome";
 import {
   LayoutDashboard,
@@ -23,6 +22,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useStore } from "@/lib/store";
+import type { Role } from "@/types";
+import { roleLabels } from "@/lib/format";
 
 interface NavItem {
   to: string;

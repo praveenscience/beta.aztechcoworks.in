@@ -8,8 +8,9 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { useStore, inr, seatTypeLabels } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
+import { useStore } from "@/lib/store";
+import { inr, seatTypeLabels } from "@/lib/format";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({

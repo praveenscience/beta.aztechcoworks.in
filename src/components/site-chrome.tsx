@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useStore } from "@/lib/store";
+import type { Role } from "@/types";
 
 const navItems = [
   { to: "/branches", label: "Branches" },
@@ -178,7 +179,6 @@ function FooterCol({ title, links }: { title: string; links: { to: string; label
   );
 }
 
-import type { Role } from "@/lib/store";
 export function dashboardHomeFor(role: Role): string {
   switch (role) {
     case "member": return "/dashboard";

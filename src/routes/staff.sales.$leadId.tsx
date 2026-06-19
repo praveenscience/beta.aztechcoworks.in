@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useStore, stageLabels, inr, type LeadStage, whatsappLink } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { ArrowLeft, MessageCircle, Phone, Mail, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import type { LeadStage } from "@/types";
+import { stageLabels, inr, whatsappLink } from "@/lib/format";
 
 const STAGES: LeadStage[] = ["new", "contacted", "qualified", "site_visit", "proposal", "negotiation", "won", "lost"];
 

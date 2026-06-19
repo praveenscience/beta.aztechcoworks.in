@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useStore, type FormDefinition, type FormField } from "@/lib/store";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import type { FormDefinition, FormField } from "@/types";
 
 export const Route = createFileRoute("/admin/forms")({
   component: FormsBuilder,

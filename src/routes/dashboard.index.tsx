@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard-shell";
-import { useStore, inr } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Calendar, QrCode, Receipt, Gift, Building2 } from "lucide-react";
+import { useStore } from "@/lib/store";
+import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/")({
   component: MemberOverview,

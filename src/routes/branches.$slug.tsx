@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { useStore, unsplash, inr, whatsappLink, seatTypeLabels } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import { unsplash, inr, whatsappLink, seatTypeLabels } from "@/lib/format";
 
 export const Route = createFileRoute("/branches/$slug")({
   component: BranchDetail,

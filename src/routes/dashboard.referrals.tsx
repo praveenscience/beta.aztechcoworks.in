@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useStore, whatsappLink, inr } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Copy, Gift, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import { whatsappLink, inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/referrals")({
   component: ReferralsPage,

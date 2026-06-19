@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useStore, inr, type Plan, type SeatType } from "@/lib/store";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import type { Plan, SeatType } from "@/types";
+import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/pricing")({
   component: AdminPricing,

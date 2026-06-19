@@ -2,7 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { useStore, unsplash } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { unsplash } from "@/lib/format";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: BlogPost,

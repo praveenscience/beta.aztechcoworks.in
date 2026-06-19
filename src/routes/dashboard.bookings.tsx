@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useStore, inr } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/bookings")({
   component: BookingsPage,
