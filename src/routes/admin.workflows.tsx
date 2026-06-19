@@ -84,7 +84,7 @@ function RuleEditor({ rule, onSave }: { rule: WorkflowRule; onSave: (r: Workflow
                   <SelectContent><SelectItem value="eq">=</SelectItem><SelectItem value="gt">{">"}</SelectItem><SelectItem value="lt">{"<"}</SelectItem></SelectContent>
                 </Select>
                 <Input value={String(c.value)} onChange={(e) => { const conds = [...r.conditions]; conds[i] = { ...c, value: e.target.value }; setR({ ...r, conditions: conds }); }} />
-                <Button variant="ghost" size="icon" onClick={() => setR({ ...r, conditions: r.conditions.filter((_, ix) => ix !== i) })}><Trash2 className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" aria-label="Remove condition" onClick={() => setR({ ...r, conditions: r.conditions.filter((_, ix) => ix !== i) })}><Trash2 className="h-4 w-4" /></Button>
               </div>
             ))}
             <Button variant="outline" size="sm" onClick={() => setR({ ...r, conditions: [...r.conditions, { field: "budget", op: "gt", value: 0 }] })}>
@@ -103,7 +103,7 @@ function RuleEditor({ rule, onSave }: { rule: WorkflowRule; onSave: (r: Workflow
                   <SelectContent>{ACTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace("_", " ")}</SelectItem>)}</SelectContent>
                 </Select>
                 <Input value={JSON.stringify(a.payload)} onChange={(e) => { try { const acts = [...r.actions]; acts[i] = { ...a, payload: JSON.parse(e.target.value) }; setR({ ...r, actions: acts }); } catch { /* ignore */ } }} />
-                <Button variant="ghost" size="icon" onClick={() => setR({ ...r, actions: r.actions.filter((_, ix) => ix !== i) })}><Trash2 className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" aria-label="Remove action" onClick={() => setR({ ...r, actions: r.actions.filter((_, ix) => ix !== i) })}><Trash2 className="h-4 w-4" /></Button>
               </div>
             ))}
             <Button variant="outline" size="sm" onClick={() => setR({ ...r, actions: [...r.actions, { type: "create_task", payload: { title: "Follow up", dueInDays: 1 } }] })}>

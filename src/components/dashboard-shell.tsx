@@ -12,16 +12,18 @@ import {
   KanbanSquare,
   Wallet,
   Megaphone,
-  Settings2,
   ListTree,
   Workflow,
   BarChart3,
   Sparkles,
   LogOut,
   CircleUser,
+  Menu,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useStore } from "@/lib/store";
 import type { Role } from "@/types";
 import { roleLabels } from "@/lib/format";
@@ -82,6 +84,7 @@ export function DashboardShell() {
   const signOut = useStore((s) => s.signOut);
   const me = users.find((u) => u.id === currentUserId);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [open, setOpen] = useState(false);
 
   if (!me) {
     return (
@@ -100,9 +103,57 @@ export function DashboardShell() {
   }
 
   const items = navsByRole[me.role] ?? [];
+  const initials = me.name.split(" ").map((p) => p[0]).slice(0, 2).join("");
+
+  const sidebarNav = (onNavigate?: () => void) => (
+    <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
+      {items.map((it) => {
+        const Icon = it.icon;
+        const active = pathname === it.to || pathname.startsWith(it.to + "/");
+        return (
+          <Link
+            key={it.to}
+            to={it.to}
+            onClick={onNavigate}
+            className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
+              active
+                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {it.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
+  const sidebarFooter = (
+    <div className="border-t border-sidebar-border p-3">
+      <div className="flex items-center gap-3 rounded-lg p-2">
+        <div className="grid h-9 w-9 place-items-center rounded-full bg-accent text-accent-foreground text-sm font-semibold">
+          {initials}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">{me.name}</div>
+          <div className="truncate text-[11px] text-sidebar-foreground/60">{roleLabels[me.role]}</div>
+        </div>
+      </div>
+      <div className="mt-2 flex gap-2">
+        <Button asChild variant="outline" size="sm" className="flex-1">
+          <Link to="/">Site</Link>
+        </Button>
+        <Button onClick={signOut} variant="ghost" size="icon" aria-label="Sign out">
+          <LogOut className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="grid min-h-screen grid-cols-1 bg-secondary/30 lg:grid-cols-[260px_1fr]">
+      {/* Desktop sidebar */}
       <aside className="hidden border-r border-sidebar-border bg-sidebar lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-5">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-gradient text-accent-foreground shadow-soft">
@@ -113,54 +164,34 @@ export function DashboardShell() {
             <div className="text-[11px] text-sidebar-foreground/60">Co-Works OS</div>
           </div>
         </div>
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
-          {items.map((it) => {
-            const Icon = it.icon;
-            const active = pathname === it.to || pathname.startsWith(it.to + "/");
-            return (
-              <Link
-                key={it.to}
-                to={it.to}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
-                  active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {it.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="border-t border-sidebar-border p-3">
-          <div className="flex items-center gap-3 rounded-lg p-2">
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-accent text-accent-foreground text-sm font-semibold">
-              {me.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium">{me.name}</div>
-              <div className="truncate text-[11px] text-sidebar-foreground/60">{roleLabels[me.role]}</div>
-            </div>
-          </div>
-          <div className="mt-2 flex gap-2">
-            <Button asChild variant="outline" size="sm" className="flex-1">
-              <Link to="/">Site</Link>
-            </Button>
-            <Button onClick={signOut} variant="ghost" size="icon" aria-label="Sign out">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        {sidebarNav()}
+        {sidebarFooter}
       </aside>
 
       <main className="min-w-0">
         <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/85 px-4 backdrop-blur lg:px-8">
           <div className="flex items-center gap-3">
-            <Link to="/" className="lg:hidden flex items-center gap-1.5 text-sm font-semibold">
-              <Sparkles className="h-4 w-4 text-accent" />
-              Aztech
-            </Link>
+            {/* Mobile hamburger */}
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] bg-sidebar p-0 text-sidebar-foreground">
+                <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-5">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-gradient text-accent-foreground shadow-soft">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <div className="text-sm font-semibold">Aztech</div>
+                    <div className="text-[11px] text-sidebar-foreground/60">Co-Works OS</div>
+                  </div>
+                </div>
+                {sidebarNav(() => setOpen(false))}
+                {sidebarFooter}
+              </SheetContent>
+            </Sheet>
             <Badge variant="secondary" className="hidden lg:inline-flex">
               {roleLabels[me.role]}
             </Badge>
@@ -204,4 +235,3 @@ export function PageHeader({
   );
 }
 
-export { Settings2 };

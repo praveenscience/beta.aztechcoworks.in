@@ -61,7 +61,7 @@ function FormEditor({ form }: { form: FormDefinition }) {
         {fields.map((f, i) => (
           <div key={i} className="grid items-end gap-2 rounded-lg border p-3 md:grid-cols-[auto_1.5fr_1fr_1fr_auto_auto]">
             <div className="flex flex-col">
-              <button onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground"><GripVertical className="h-4 w-4" /></button>
+              <button onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground" aria-label="Reorder field"><GripVertical className="h-4 w-4" /></button>
             </div>
             <div><Label>Label</Label><Input value={f.label} onChange={(e) => update(i, { label: e.target.value })} /></div>
             <div><Label>Key</Label><Input value={f.key} onChange={(e) => update(i, { key: e.target.value })} /></div>
@@ -78,7 +78,7 @@ function FormEditor({ form }: { form: FormDefinition }) {
               <Switch checked={f.required} onCheckedChange={(v) => update(i, { required: v })} />
               <Label className="text-xs">Required</Label>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => remove(i)}><Trash2 className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" aria-label="Remove field" onClick={() => remove(i)}><Trash2 className="h-4 w-4" /></Button>
           </div>
         ))}
         <div className="flex justify-between pt-2">

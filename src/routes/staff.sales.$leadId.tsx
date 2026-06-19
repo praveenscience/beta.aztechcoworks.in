@@ -174,7 +174,7 @@ function LeadDetail() {
                 className="mb-3 flex gap-2"
               >
                 <Input placeholder="New task…" value={newTask} onChange={(e) => setNewTask(e.target.value)} />
-                <Button type="submit" size="icon"><Plus className="h-4 w-4" /></Button>
+                <Button type="submit" size="icon" aria-label="Add task"><Plus className="h-4 w-4" /></Button>
               </form>
               <div className="space-y-2">
                 {tasks.map((t) => (
