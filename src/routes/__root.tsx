@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
+  HeadContent,
   createRootRouteWithContext,
   useRouter,
 } from "@tanstack/react-router";
@@ -74,6 +75,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
+      <HeadContent />
       <Outlet />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>

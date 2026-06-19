@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, MapPin, Sparkles, Sun, Moon } from "lucide-react";
+import { Menu, MapPin, MessageCircle, Sparkles, Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useStore } from "@/lib/store";
+import { whatsappLink } from "@/lib/format";
 import type { Role } from "@/types";
 
 const navItems = [
@@ -176,6 +177,20 @@ function FooterCol({ title, links }: { title: string; links: { to: string; label
         ))}
       </ul>
     </div>
+  );
+}
+
+export function WhatsAppFab() {
+  return (
+    <a
+      href={whatsappLink("Hi Aztech! I'd like to know more about your coworking spaces.")}
+      target="_blank"
+      rel="noreferrer"
+      className="fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-success text-success-foreground shadow-elegant transition hover:scale-105 active:scale-95"
+      aria-label="Chat on WhatsApp"
+    >
+      <MessageCircle className="h-6 w-6" />
+    </a>
   );
 }
 

@@ -17,10 +17,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/lib/store";
 import { unsplash, whatsappLink, inr } from "@/lib/format";
+import { useCounter } from "@/hooks/use-counter";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,26 +50,31 @@ function Home() {
   const totalSeats = branches.reduce((a, b) => a + b.totalSeats, 0);
   const avail = branches.reduce((a, b) => a + b.availableSeats, 0);
 
+  const branchesRef = useScrollReveal<HTMLElement>();
+  const pricingRef = useScrollReveal<HTMLElement>();
+  const amenitiesRef = useScrollReveal<HTMLElement>();
+  const testimonialsRef = useScrollReveal<HTMLElement>();
+
   return (
     <>
       <SiteHeader />
       <main>
-        {/* HERO */}
+        {/* ─── HERO ─── */}
         <section className="relative overflow-hidden bg-hero text-white">
           <div className="container relative mx-auto grid gap-12 px-4 py-20 md:grid-cols-2 md:px-6 md:py-28 lg:py-32">
-            <div>
-              <Badge className="border-white/20 bg-white/10 text-white backdrop-blur">
+            <div className="flex flex-col justify-center">
+              <Badge className="w-fit border-white/20 bg-white/10 text-white backdrop-blur">
                 <span className="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
                 {avail} seats available right now
               </Badge>
-              <h1 className="mt-5 text-balance text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
+              <h1 className="mt-5 text-balance text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
                 The workspace that{" "}
                 <span className="bg-gradient-to-r from-accent to-amber-200 bg-clip-text text-transparent">
                   works as hard
                 </span>{" "}
                 as you do.
               </h1>
-              <p className="mt-5 max-w-xl text-lg text-white/75">
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75">
                 Five premium coworking branches across Coimbatore. {totalSeats.toLocaleString("en-IN")} seats,
                 fibre internet, meeting rooms, 24/7 access, and a real community of founders, freelancers, and
                 teams.
@@ -96,12 +103,12 @@ function Home() {
                 </Button>
               </div>
               <div className="mt-10 grid max-w-md grid-cols-3 gap-4">
-                <Stat label="Branches" value="5" />
-                <Stat label="Total seats" value={totalSeats.toLocaleString("en-IN")} />
-                <Stat label="Avg. NPS" value="78" />
+                <AnimatedStat label="Branches" end={5} />
+                <AnimatedStat label="Total seats" end={totalSeats} format={(n) => n.toLocaleString("en-IN")} />
+                <AnimatedStat label="Avg. NPS" end={78} />
               </div>
             </div>
-            <div className="relative">
+            <div className="relative hidden md:block">
               <div className="absolute -left-12 -top-12 h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
               <div className="absolute -bottom-12 -right-12 h-72 w-72 rounded-full bg-white/20 blur-3xl" />
               <div className="relative grid grid-cols-2 gap-3">
@@ -109,17 +116,26 @@ function Home() {
                   src={unsplash("photo-1497366216548-37526070297c", 700, 900)}
                   alt="Modern coworking lounge"
                   className="aspect-[3/4] w-full rounded-2xl object-cover shadow-elegant"
+                  loading="eager"
+                  width={700}
+                  height={900}
                 />
                 <div className="space-y-3 pt-10">
                   <img
                     src={unsplash("photo-1556761175-5973dc0f32e7", 700, 500)}
                     alt="Meeting room"
                     className="aspect-[4/3] w-full rounded-2xl object-cover shadow-elegant"
+                    loading="eager"
+                    width={700}
+                    height={500}
                   />
                   <img
                     src={unsplash("photo-1604328698692-f76ea9498e76", 700, 500)}
                     alt="Cafeteria"
                     className="aspect-[4/3] w-full rounded-2xl object-cover shadow-elegant"
+                    loading="lazy"
+                    width={700}
+                    height={500}
                   />
                 </div>
               </div>
@@ -127,8 +143,26 @@ function Home() {
           </div>
         </section>
 
-        {/* BRANCH SEARCH */}
-        <section className="container mx-auto px-4 py-16 md:px-6 md:py-24">
+        {/* ─── TRUSTED BY ─── */}
+        <section className="border-b border-border/60 bg-secondary/30 py-8">
+          <div className="container mx-auto px-4 md:px-6">
+            <p className="mb-5 text-center text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              Trusted by teams at
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 opacity-60 grayscale">
+              {["Loop Analytics", "Cibyl Studios", "Northwind Labs", "OrangeFin", "Indigo Code", "BrewLab"].map(
+                (name) => (
+                  <span key={name} className="text-sm font-semibold tracking-tight text-foreground">
+                    {name}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── BRANCHES ─── */}
+        <section ref={branchesRef} className="container mx-auto px-4 py-16 opacity-0 md:px-6 md:py-24">
           <div className="flex items-end justify-between gap-6">
             <div>
               <Badge variant="outline" className="mb-3">5 Branches in Coimbatore</Badge>
@@ -143,39 +177,44 @@ function Home() {
           </div>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {branches.map((b) => (
-              <Card key={b.id} className="overflow-hidden border-border/60 bg-card-soft transition hover:shadow-elegant">
-                <div className="relative">
-                  <img
-                    src={unsplash(b.photo, 800, 500)}
-                    alt={b.name}
-                    className="aspect-[16/10] w-full object-cover"
-                  />
-                  <Badge className="absolute left-3 top-3 bg-background/90 text-foreground hover:bg-background">
-                    <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-success" />
-                    {b.availableSeats} seats free
-                  </Badge>
-                </div>
-                <CardHeader>
-                  <CardTitle>{b.name}</CardTitle>
-                  <CardDescription className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5" /> {b.address}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">{b.totalSeats} seats · {b.hours.split("·")[0]}</div>
-                  <Button asChild size="sm" variant="ghost">
-                    <Link to="/branches/$slug" params={{ slug: b.slug }}>
-                      View <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
+              <Link key={b.id} to="/branches/$slug" params={{ slug: b.slug }} className="group">
+                <Card className="overflow-hidden border-border/60 bg-card-soft transition hover:shadow-elegant">
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={unsplash(b.photo, 800, 500)}
+                      alt={b.name}
+                      className="aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      width={800}
+                      height={500}
+                    />
+                    <Badge className="absolute left-3 top-3 bg-background/90 text-foreground hover:bg-background">
+                      <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-success" />
+                      {b.availableSeats} seats free
+                    </Badge>
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="group-hover:text-accent transition-colors">{b.name}</CardTitle>
+                    <CardDescription className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" /> {b.address}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xs text-muted-foreground">{b.totalSeats} seats · {b.hours.split("·")[0]}</div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
+          </div>
+          <div className="mt-6 text-center md:hidden">
+            <Button asChild variant="outline">
+              <Link to="/branches">All branches <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+            </Button>
           </div>
         </section>
 
-        {/* PRICING */}
-        <section className="bg-secondary/40 py-16 md:py-24">
+        {/* ─── PRICING ─── */}
+        <section ref={pricingRef} className="bg-secondary/40 py-16 opacity-0 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center">
               <Badge variant="outline" className="mb-3">Pricing</Badge>
@@ -188,7 +227,7 @@ function Home() {
               {plans.map((p, i) => (
                 <Card
                   key={p.id}
-                  className={`relative flex flex-col border-border/60 ${
+                  className={`relative flex flex-col border-border/60 transition hover:shadow-elegant ${
                     i === 1 ? "border-accent/40 shadow-glow" : ""
                   }`}
                 >
@@ -224,8 +263,8 @@ function Home() {
           </div>
         </section>
 
-        {/* AMENITIES */}
-        <section className="container mx-auto px-4 py-16 md:px-6 md:py-24">
+        {/* ─── AMENITIES ─── */}
+        <section ref={amenitiesRef} className="container mx-auto px-4 py-16 opacity-0 md:px-6 md:py-24">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
               <Badge variant="outline" className="mb-3">Amenities</Badge>
@@ -250,6 +289,9 @@ function Home() {
                 src={unsplash("photo-1568992687947-868a62a9f521", 900, 1100)}
                 alt="Workspace lounge"
                 className="aspect-[4/5] w-full rounded-3xl object-cover shadow-elegant"
+                loading="lazy"
+                width={900}
+                height={1100}
               />
               <div className="absolute -bottom-6 -left-6 hidden rounded-2xl border border-border bg-card p-4 shadow-elegant md:block">
                 <div className="flex items-center gap-3">
@@ -266,8 +308,8 @@ function Home() {
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section className="bg-secondary/40 py-16 md:py-24">
+        {/* ─── TESTIMONIALS ─── */}
+        <section ref={testimonialsRef} className="bg-secondary/40 py-16 opacity-0 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center">
               <Badge variant="outline" className="mb-3">Loved by founders</Badge>
@@ -277,7 +319,7 @@ function Home() {
             </div>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {testimonials.map((t) => (
-                <Card key={t.id} className="border-border/60 bg-card">
+                <Card key={t.id} className="border-border/60 bg-card transition hover:shadow-soft">
                   <CardContent className="pt-6">
                     <Quote className="h-6 w-6 text-accent" />
                     <p className="mt-3 text-sm leading-relaxed">"{t.quote}"</p>
@@ -286,6 +328,9 @@ function Home() {
                         src={unsplash(t.avatar, 100, 100)}
                         alt={t.name}
                         className="h-10 w-10 rounded-full object-cover"
+                        loading="lazy"
+                        width={100}
+                        height={100}
                       />
                       <div>
                         <div className="text-sm font-semibold">{t.name}</div>
@@ -299,7 +344,7 @@ function Home() {
           </div>
         </section>
 
-        {/* CORPORATE CTA */}
+        {/* ─── CORPORATE CTA ─── */}
         <section className="container mx-auto px-4 py-16 md:px-6 md:py-24">
           <div className="overflow-hidden rounded-3xl bg-hero p-10 text-white md:p-16">
             <div className="grid gap-8 md:grid-cols-[2fr_1fr] md:items-center">
@@ -325,25 +370,26 @@ function Home() {
         </section>
       </main>
       <SiteFooter />
-
-      {/* Floating WhatsApp */}
-      <a
-        href={whatsappLink("Hi Aztech! I'd like to know more about your coworking spaces.")}
-        target="_blank"
-        rel="noreferrer"
-        className="fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-success text-success-foreground shadow-elegant transition hover:scale-105"
-        aria-label="Chat on WhatsApp"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </a>
+      <WhatsAppFab />
     </>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+// ─── Sub-components ──────────────────────────────
+
+function AnimatedStat({
+  label,
+  end,
+  format = String,
+}: {
+  label: string;
+  end: number;
+  format?: (n: number) => string;
+}) {
+  const { value, ref } = useCounter(end);
   return (
-    <div>
-      <div className="text-3xl font-bold tracking-tight">{value}</div>
+    <div ref={ref as React.RefObject<HTMLDivElement>}>
+      <div className="text-3xl font-bold tracking-tight">{format(value)}</div>
       <div className="mt-1 text-xs uppercase tracking-wider text-white/55">{label}</div>
     </div>
   );
@@ -359,8 +405,8 @@ function Amenity({
   desc: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-card p-4 shadow-soft">
-      <div className="grid h-9 w-9 place-items-center rounded-lg bg-accent/10 text-accent">
+    <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-card p-4 shadow-soft transition hover:shadow-elegant">
+      <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent">
         <Icon className="h-4 w-4" />
       </div>
       <div>
