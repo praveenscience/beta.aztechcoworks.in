@@ -7,13 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Building2, Rocket, Users, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/corporate")({
+export const Route = createFileRoute("/_public/corporate")({
   head: () => ({
     meta: [
       { title: "Corporate Workspace Solutions in Coimbatore | Aztech Co-Works" },
@@ -55,8 +54,6 @@ function CorporatePage() {
   };
 
   return (
-    <>
-      <SiteHeader />
       <main>
         <section className="bg-hero py-20 text-white">
           <div className="container mx-auto grid gap-10 px-4 md:grid-cols-2 md:px-6 md:items-center">
@@ -135,9 +132,6 @@ function CorporatePage() {
           </div>
         </section>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }
 

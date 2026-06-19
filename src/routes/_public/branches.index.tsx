@@ -3,13 +3,12 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/lib/store";
 import { unsplash } from "@/lib/format";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
-export const Route = createFileRoute("/branches/")({
+export const Route = createFileRoute("/_public/branches/")({
   head: () => ({
     meta: [
       { title: "Branches — Aztech Co-Works (5 locations in Coimbatore)" },
@@ -23,8 +22,6 @@ function BranchesPage() {
   const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
   const gridRef = useScrollReveal<HTMLDivElement>();
   return (
-    <>
-      <SiteHeader />
       <main className="container mx-auto px-4 py-12 md:px-6 md:py-16">
         <div className="mb-10">
           <Badge variant="outline" className="mb-3">5 branches</Badge>
@@ -61,8 +58,5 @@ function BranchesPage() {
           ))}
         </div>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }

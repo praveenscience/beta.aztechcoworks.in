@@ -1,11 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useStore } from "@/lib/store";
 import { unsplash } from "@/lib/format";
 
-export const Route = createFileRoute("/blog/$slug")({
+export const Route = createFileRoute("/_public/blog/$slug")({
   component: BlogPost,
 });
 
@@ -15,8 +14,6 @@ function BlogPost() {
   if (!post) throw notFound();
 
   return (
-    <>
-      <SiteHeader />
       <main className="container mx-auto max-w-3xl px-4 py-12 md:px-6 md:py-16">
         <Button asChild variant="ghost" size="sm">
           <Link to="/blog"><ArrowLeft className="mr-1 h-4 w-4" /> All posts</Link>
@@ -46,8 +43,5 @@ function BlogPost() {
           </div>
         </article>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }

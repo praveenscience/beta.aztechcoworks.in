@@ -17,14 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/lib/store";
 import { unsplash, whatsappLink, inr } from "@/lib/format";
 import { useCounter } from "@/hooks/use-counter";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_public/")({
   head: () => ({
     meta: [
       { title: "Aztech Co-Works — Coworking & Managed Offices in Coimbatore" },
@@ -56,8 +55,6 @@ function Home() {
   const testimonialsRef = useScrollReveal<HTMLElement>();
 
   return (
-    <>
-      <SiteHeader />
       <main>
         {/* ─── HERO ─── */}
         <section className="relative overflow-hidden bg-hero text-white">
@@ -369,9 +366,6 @@ function Home() {
           </div>
         </section>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }
 

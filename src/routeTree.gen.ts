@@ -10,16 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StaffRouteImport } from './routes/staff'
-import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CorporateRouteImport } from './routes/corporate'
-import { Route as BookVisitRouteImport } from './routes/book-visit'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as BranchesIndexRouteImport } from './routes/branches.index'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as StaffReceptionRouteImport } from './routes/staff.reception'
 import { Route as StaffMarketingRouteImport } from './routes/staff.marketing'
 import { Route as StaffFinanceRouteImport } from './routes/staff.finance'
@@ -30,25 +25,26 @@ import { Route as DashboardMembershipRouteImport } from './routes/dashboard.memb
 import { Route as DashboardInvoicesRouteImport } from './routes/dashboard.invoices'
 import { Route as DashboardCommunityRouteImport } from './routes/dashboard.community'
 import { Route as DashboardBookingsRouteImport } from './routes/dashboard.bookings'
-import { Route as BranchesSlugRouteImport } from './routes/branches.$slug'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminWorkflowsRouteImport } from './routes/admin.workflows'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminPricingRouteImport } from './routes/admin.pricing'
 import { Route as AdminFormsRouteImport } from './routes/admin.forms'
 import { Route as AdminBranchesRouteImport } from './routes/admin.branches'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as PublicPricingRouteImport } from './routes/_public/pricing'
+import { Route as PublicCorporateRouteImport } from './routes/_public/corporate'
+import { Route as PublicBookVisitRouteImport } from './routes/_public/book-visit'
+import { Route as PublicAuthRouteImport } from './routes/_public/auth'
 import { Route as StaffSalesIndexRouteImport } from './routes/staff.sales.index'
+import { Route as PublicBranchesIndexRouteImport } from './routes/_public/branches.index'
+import { Route as PublicBlogIndexRouteImport } from './routes/_public/blog.index'
 import { Route as StaffSalesLeadIdRouteImport } from './routes/staff.sales.$leadId'
+import { Route as PublicBranchesSlugRouteImport } from './routes/_public/branches.$slug'
+import { Route as PublicBlogSlugRouteImport } from './routes/_public/blog.$slug'
 
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -56,29 +52,13 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CorporateRoute = CorporateRouteImport.update({
-  id: '/corporate',
-  path: '/corporate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookVisitRoute = BookVisitRouteImport.update({
-  id: '/book-visit',
-  path: '/book-visit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -86,15 +66,10 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const BranchesIndexRoute = BranchesIndexRouteImport.update({
-  id: '/branches/',
-  path: '/branches/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
-  getParentRoute: () => rootRouteImport,
+const PublicIndexRoute = PublicIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PublicRoute,
 } as any)
 const StaffReceptionRoute = StaffReceptionRouteImport.update({
   id: '/reception',
@@ -146,16 +121,6 @@ const DashboardBookingsRoute = DashboardBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => DashboardRoute,
 } as any)
-const BranchesSlugRoute = BranchesSlugRouteImport.update({
-  id: '/branches/$slug',
-  path: '/branches/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminWorkflowsRoute = AdminWorkflowsRouteImport.update({
   id: '/workflows',
   path: '/workflows',
@@ -186,34 +151,72 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const PublicPricingRoute = PublicPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicCorporateRoute = PublicCorporateRouteImport.update({
+  id: '/corporate',
+  path: '/corporate',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicBookVisitRoute = PublicBookVisitRouteImport.update({
+  id: '/book-visit',
+  path: '/book-visit',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicAuthRoute = PublicAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => PublicRoute,
+} as any)
 const StaffSalesIndexRoute = StaffSalesIndexRouteImport.update({
   id: '/sales/',
   path: '/sales/',
   getParentRoute: () => StaffRoute,
+} as any)
+const PublicBranchesIndexRoute = PublicBranchesIndexRouteImport.update({
+  id: '/branches/',
+  path: '/branches/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicBlogIndexRoute = PublicBlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => PublicRoute,
 } as any)
 const StaffSalesLeadIdRoute = StaffSalesLeadIdRouteImport.update({
   id: '/sales/$leadId',
   path: '/sales/$leadId',
   getParentRoute: () => StaffRoute,
 } as any)
+const PublicBranchesSlugRoute = PublicBranchesSlugRouteImport.update({
+  id: '/branches/$slug',
+  path: '/branches/$slug',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicBlogSlugRoute = PublicBlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => PublicRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
-  '/book-visit': typeof BookVisitRoute
-  '/corporate': typeof CorporateRoute
   '/dashboard': typeof DashboardRouteWithChildren
-  '/pricing': typeof PricingRoute
   '/staff': typeof StaffRouteWithChildren
+  '/auth': typeof PublicAuthRoute
+  '/book-visit': typeof PublicBookVisitRoute
+  '/corporate': typeof PublicCorporateRoute
+  '/pricing': typeof PublicPricingRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/branches': typeof AdminBranchesRoute
   '/admin/forms': typeof AdminFormsRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/workflows': typeof AdminWorkflowsRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/branches/$slug': typeof BranchesSlugRoute
   '/dashboard/bookings': typeof DashboardBookingsRoute
   '/dashboard/community': typeof DashboardCommunityRoute
   '/dashboard/invoices': typeof DashboardInvoicesRoute
@@ -224,28 +227,27 @@ export interface FileRoutesByFullPath {
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/marketing': typeof StaffMarketingRoute
   '/staff/reception': typeof StaffReceptionRoute
-  '/blog/': typeof BlogIndexRoute
-  '/branches/': typeof BranchesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/blog/$slug': typeof PublicBlogSlugRoute
+  '/branches/$slug': typeof PublicBranchesSlugRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
+  '/blog/': typeof PublicBlogIndexRoute
+  '/branches/': typeof PublicBranchesIndexRoute
   '/staff/sales/': typeof StaffSalesIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
-  '/book-visit': typeof BookVisitRoute
-  '/corporate': typeof CorporateRoute
-  '/pricing': typeof PricingRoute
   '/staff': typeof StaffRouteWithChildren
+  '/auth': typeof PublicAuthRoute
+  '/book-visit': typeof PublicBookVisitRoute
+  '/corporate': typeof PublicCorporateRoute
+  '/pricing': typeof PublicPricingRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/branches': typeof AdminBranchesRoute
   '/admin/forms': typeof AdminFormsRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/workflows': typeof AdminWorkflowsRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/branches/$slug': typeof BranchesSlugRoute
   '/dashboard/bookings': typeof DashboardBookingsRoute
   '/dashboard/community': typeof DashboardCommunityRoute
   '/dashboard/invoices': typeof DashboardInvoicesRoute
@@ -256,30 +258,31 @@ export interface FileRoutesByTo {
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/marketing': typeof StaffMarketingRoute
   '/staff/reception': typeof StaffReceptionRoute
-  '/blog': typeof BlogIndexRoute
-  '/branches': typeof BranchesIndexRoute
+  '/': typeof PublicIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/blog/$slug': typeof PublicBlogSlugRoute
+  '/branches/$slug': typeof PublicBranchesSlugRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
+  '/blog': typeof PublicBlogIndexRoute
+  '/branches': typeof PublicBranchesIndexRoute
   '/staff/sales': typeof StaffSalesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_public': typeof PublicRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
-  '/book-visit': typeof BookVisitRoute
-  '/corporate': typeof CorporateRoute
   '/dashboard': typeof DashboardRouteWithChildren
-  '/pricing': typeof PricingRoute
   '/staff': typeof StaffRouteWithChildren
+  '/_public/auth': typeof PublicAuthRoute
+  '/_public/book-visit': typeof PublicBookVisitRoute
+  '/_public/corporate': typeof PublicCorporateRoute
+  '/_public/pricing': typeof PublicPricingRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/branches': typeof AdminBranchesRoute
   '/admin/forms': typeof AdminFormsRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/workflows': typeof AdminWorkflowsRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/branches/$slug': typeof BranchesSlugRoute
   '/dashboard/bookings': typeof DashboardBookingsRoute
   '/dashboard/community': typeof DashboardCommunityRoute
   '/dashboard/invoices': typeof DashboardInvoicesRoute
@@ -290,10 +293,13 @@ export interface FileRoutesById {
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/marketing': typeof StaffMarketingRoute
   '/staff/reception': typeof StaffReceptionRoute
-  '/blog/': typeof BlogIndexRoute
-  '/branches/': typeof BranchesIndexRoute
+  '/_public/': typeof PublicIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/_public/blog/$slug': typeof PublicBlogSlugRoute
+  '/_public/branches/$slug': typeof PublicBranchesSlugRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
+  '/_public/blog/': typeof PublicBlogIndexRoute
+  '/_public/branches/': typeof PublicBranchesIndexRoute
   '/staff/sales/': typeof StaffSalesIndexRoute
 }
 export interface FileRouteTypes {
@@ -301,20 +307,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/dashboard'
+    | '/staff'
     | '/auth'
     | '/book-visit'
     | '/corporate'
-    | '/dashboard'
     | '/pricing'
-    | '/staff'
     | '/admin/analytics'
     | '/admin/branches'
     | '/admin/forms'
     | '/admin/pricing'
     | '/admin/users'
     | '/admin/workflows'
-    | '/blog/$slug'
-    | '/branches/$slug'
     | '/dashboard/bookings'
     | '/dashboard/community'
     | '/dashboard/invoices'
@@ -325,28 +329,27 @@ export interface FileRouteTypes {
     | '/staff/finance'
     | '/staff/marketing'
     | '/staff/reception'
+    | '/dashboard/'
+    | '/blog/$slug'
+    | '/branches/$slug'
+    | '/staff/sales/$leadId'
     | '/blog/'
     | '/branches/'
-    | '/dashboard/'
-    | '/staff/sales/$leadId'
     | '/staff/sales/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/admin'
+    | '/staff'
     | '/auth'
     | '/book-visit'
     | '/corporate'
     | '/pricing'
-    | '/staff'
     | '/admin/analytics'
     | '/admin/branches'
     | '/admin/forms'
     | '/admin/pricing'
     | '/admin/users'
     | '/admin/workflows'
-    | '/blog/$slug'
-    | '/branches/$slug'
     | '/dashboard/bookings'
     | '/dashboard/community'
     | '/dashboard/invoices'
@@ -357,29 +360,30 @@ export interface FileRouteTypes {
     | '/staff/finance'
     | '/staff/marketing'
     | '/staff/reception'
+    | '/'
+    | '/dashboard'
+    | '/blog/$slug'
+    | '/branches/$slug'
+    | '/staff/sales/$leadId'
     | '/blog'
     | '/branches'
-    | '/dashboard'
-    | '/staff/sales/$leadId'
     | '/staff/sales'
   id:
     | '__root__'
-    | '/'
+    | '/_public'
     | '/admin'
-    | '/auth'
-    | '/book-visit'
-    | '/corporate'
     | '/dashboard'
-    | '/pricing'
     | '/staff'
+    | '/_public/auth'
+    | '/_public/book-visit'
+    | '/_public/corporate'
+    | '/_public/pricing'
     | '/admin/analytics'
     | '/admin/branches'
     | '/admin/forms'
     | '/admin/pricing'
     | '/admin/users'
     | '/admin/workflows'
-    | '/blog/$slug'
-    | '/branches/$slug'
     | '/dashboard/bookings'
     | '/dashboard/community'
     | '/dashboard/invoices'
@@ -390,26 +394,21 @@ export interface FileRouteTypes {
     | '/staff/finance'
     | '/staff/marketing'
     | '/staff/reception'
-    | '/blog/'
-    | '/branches/'
+    | '/_public/'
     | '/dashboard/'
+    | '/_public/blog/$slug'
+    | '/_public/branches/$slug'
     | '/staff/sales/$leadId'
+    | '/_public/blog/'
+    | '/_public/branches/'
     | '/staff/sales/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  PublicRoute: typeof PublicRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
-  AuthRoute: typeof AuthRoute
-  BookVisitRoute: typeof BookVisitRoute
-  CorporateRoute: typeof CorporateRoute
   DashboardRoute: typeof DashboardRouteWithChildren
-  PricingRoute: typeof PricingRoute
   StaffRoute: typeof StaffRouteWithChildren
-  BlogSlugRoute: typeof BlogSlugRoute
-  BranchesSlugRoute: typeof BranchesSlugRoute
-  BlogIndexRoute: typeof BlogIndexRoute
-  BranchesIndexRoute: typeof BranchesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -421,39 +420,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/corporate': {
-      id: '/corporate'
-      path: '/corporate'
-      fullPath: '/corporate'
-      preLoaderRoute: typeof CorporateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/book-visit': {
-      id: '/book-visit'
-      path: '/book-visit'
-      fullPath: '/book-visit'
-      preLoaderRoute: typeof BookVisitRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -463,11 +434,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
+    '/_public': {
+      id: '/_public'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -477,19 +448,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/branches/': {
-      id: '/branches/'
-      path: '/branches'
-      fullPath: '/branches/'
-      preLoaderRoute: typeof BranchesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_public/': {
+      id: '/_public/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/staff/reception': {
       id: '/staff/reception'
@@ -561,20 +525,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBookingsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/branches/$slug': {
-      id: '/branches/$slug'
-      path: '/branches/$slug'
-      fullPath: '/branches/$slug'
-      preLoaderRoute: typeof BranchesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/workflows': {
       id: '/admin/workflows'
       path: '/workflows'
@@ -617,12 +567,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_public/pricing': {
+      id: '/_public/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PublicPricingRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/corporate': {
+      id: '/_public/corporate'
+      path: '/corporate'
+      fullPath: '/corporate'
+      preLoaderRoute: typeof PublicCorporateRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/book-visit': {
+      id: '/_public/book-visit'
+      path: '/book-visit'
+      fullPath: '/book-visit'
+      preLoaderRoute: typeof PublicBookVisitRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/auth': {
+      id: '/_public/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof PublicAuthRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/staff/sales/': {
       id: '/staff/sales/'
       path: '/sales'
       fullPath: '/staff/sales/'
       preLoaderRoute: typeof StaffSalesIndexRouteImport
       parentRoute: typeof StaffRoute
+    }
+    '/_public/branches/': {
+      id: '/_public/branches/'
+      path: '/branches'
+      fullPath: '/branches/'
+      preLoaderRoute: typeof PublicBranchesIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/blog/': {
+      id: '/_public/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof PublicBlogIndexRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/staff/sales/$leadId': {
       id: '/staff/sales/$leadId'
@@ -631,8 +623,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffSalesLeadIdRouteImport
       parentRoute: typeof StaffRoute
     }
+    '/_public/branches/$slug': {
+      id: '/_public/branches/$slug'
+      path: '/branches/$slug'
+      fullPath: '/branches/$slug'
+      preLoaderRoute: typeof PublicBranchesSlugRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/blog/$slug': {
+      id: '/_public/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof PublicBlogSlugRouteImport
+      parentRoute: typeof PublicRoute
+    }
   }
 }
+
+interface PublicRouteChildren {
+  PublicAuthRoute: typeof PublicAuthRoute
+  PublicBookVisitRoute: typeof PublicBookVisitRoute
+  PublicCorporateRoute: typeof PublicCorporateRoute
+  PublicPricingRoute: typeof PublicPricingRoute
+  PublicIndexRoute: typeof PublicIndexRoute
+  PublicBlogSlugRoute: typeof PublicBlogSlugRoute
+  PublicBranchesSlugRoute: typeof PublicBranchesSlugRoute
+  PublicBlogIndexRoute: typeof PublicBlogIndexRoute
+  PublicBranchesIndexRoute: typeof PublicBranchesIndexRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicAuthRoute: PublicAuthRoute,
+  PublicBookVisitRoute: PublicBookVisitRoute,
+  PublicCorporateRoute: PublicCorporateRoute,
+  PublicPricingRoute: PublicPricingRoute,
+  PublicIndexRoute: PublicIndexRoute,
+  PublicBlogSlugRoute: PublicBlogSlugRoute,
+  PublicBranchesSlugRoute: PublicBranchesSlugRoute,
+  PublicBlogIndexRoute: PublicBlogIndexRoute,
+  PublicBranchesIndexRoute: PublicBranchesIndexRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
 
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
@@ -699,18 +732,10 @@ const StaffRouteChildren: StaffRouteChildren = {
 const StaffRouteWithChildren = StaffRoute._addFileChildren(StaffRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  PublicRoute: PublicRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
-  AuthRoute: AuthRoute,
-  BookVisitRoute: BookVisitRoute,
-  CorporateRoute: CorporateRoute,
   DashboardRoute: DashboardRouteWithChildren,
-  PricingRoute: PricingRoute,
   StaffRoute: StaffRouteWithChildren,
-  BlogSlugRoute: BlogSlugRoute,
-  BranchesSlugRoute: BranchesSlugRoute,
-  BlogIndexRoute: BlogIndexRoute,
-  BranchesIndexRoute: BranchesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

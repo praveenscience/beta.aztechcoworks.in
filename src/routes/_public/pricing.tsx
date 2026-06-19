@@ -7,13 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/lib/store";
 import { inr, seatTypeLabels } from "@/lib/format";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
-export const Route = createFileRoute("/pricing")({
+export const Route = createFileRoute("/_public/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — Aztech Co-Works Coimbatore" },
@@ -38,8 +37,6 @@ function PricingPage() {
   const calcRef = useScrollReveal<HTMLDivElement>();
 
   return (
-    <>
-      <SiteHeader />
       <main className="container mx-auto px-4 py-12 md:px-6 md:py-16">
         <div className="text-center">
           <Badge variant="outline" className="mb-3">Pricing</Badge>
@@ -140,9 +137,6 @@ function PricingPage() {
           </CardContent>
         </Card>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }
 

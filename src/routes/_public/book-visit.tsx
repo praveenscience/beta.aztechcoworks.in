@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Calendar, Clock, CheckCircle2 } from "lucide-react";
@@ -16,7 +15,7 @@ import { toast } from "sonner";
 
 const searchSchema = z.object({ branch: z.string().optional() });
 
-export const Route = createFileRoute("/book-visit")({
+export const Route = createFileRoute("/_public/book-visit")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
@@ -86,8 +85,6 @@ function BookVisit() {
   };
 
   return (
-    <>
-      <SiteHeader />
       <main className="container mx-auto max-w-4xl px-4 py-12 md:px-6 md:py-16">
         <Badge variant="outline" className="mb-3">Free · 30 minutes</Badge>
         <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Book a site visit</h1>
@@ -167,8 +164,5 @@ function BookVisit() {
           </CardContent>
         </Card>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }

@@ -2,12 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useStore } from "@/lib/store";
 import { unsplash } from "@/lib/format";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
-export const Route = createFileRoute("/blog/")({
+export const Route = createFileRoute("/_public/blog/")({
   head: () => ({
     meta: [
       { title: "Blog — Aztech Co-Works" },
@@ -21,8 +20,6 @@ function BlogIndex() {
   const posts = useStore((s) => s.blog);
   const gridRef = useScrollReveal<HTMLDivElement>();
   return (
-    <>
-      <SiteHeader />
       <main className="container mx-auto px-4 py-12 md:px-6 md:py-16">
         <Badge variant="outline" className="mb-3">Editorial</Badge>
         <h1 className="text-4xl font-bold tracking-tight md:text-5xl">The Aztech Journal</h1>
@@ -46,8 +43,5 @@ function BlogIndex() {
           ))}
         </div>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }

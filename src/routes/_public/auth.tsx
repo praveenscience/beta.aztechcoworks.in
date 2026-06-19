@@ -5,14 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { SiteHeader, SiteFooter, dashboardHomeFor } from "@/components/site-chrome";
+import { dashboardHomeFor } from "@/components/site-chrome";
 import { ArrowRight, Sparkles, User } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
 import type { Role } from "@/types";
 import { roleLabels } from "@/lib/format";
 
-export const Route = createFileRoute("/auth")({
+export const Route = createFileRoute("/_public/auth")({
   head: () => ({
     meta: [{ title: "Sign in — Aztech Co-Works" }],
   }),
@@ -67,8 +67,6 @@ function AuthPage() {
   };
 
   return (
-    <>
-      <SiteHeader />
       <main className="container mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-2 md:px-6 md:py-16">
         <div>
           <Badge variant="outline" className="mb-3">
@@ -127,7 +125,5 @@ function AuthPage() {
           </CardContent>
         </Card>
       </main>
-      <SiteFooter />
-    </>
   );
 }

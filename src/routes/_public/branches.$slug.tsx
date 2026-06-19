@@ -7,14 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
 import { unsplash, inr, whatsappLink, seatTypeLabels } from "@/lib/format";
 
-export const Route = createFileRoute("/branches/$slug")({
+export const Route = createFileRoute("/_public/branches/$slug")({
   component: BranchDetail,
 });
 
@@ -42,8 +41,6 @@ function BranchDetail() {
   };
 
   return (
-    <>
-      <SiteHeader />
       <main>
         <section className="relative h-[420px] overflow-hidden">
           <img src={unsplash(branch.photo, 1800, 900)} alt={branch.name} className="h-full w-full object-cover" width={1800} height={900} />
@@ -179,8 +176,5 @@ function BranchDetail() {
           </aside>
         </section>
       </main>
-      <SiteFooter />
-      <WhatsAppFab />
-    </>
   );
 }
