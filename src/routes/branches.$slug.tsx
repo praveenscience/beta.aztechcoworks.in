@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ function BranchDetail() {
       <SiteHeader />
       <main>
         <section className="relative h-[420px] overflow-hidden">
-          <img src={unsplash(branch.photo, 1800, 900)} alt={branch.name} className="h-full w-full object-cover" />
+          <img src={unsplash(branch.photo, 1800, 900)} alt={branch.name} className="h-full w-full object-cover" width={1800} height={900} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 container mx-auto px-4 pb-10 text-white md:px-6">
             <Badge className="border-white/20 bg-white/10 text-white backdrop-blur">
@@ -180,6 +180,7 @@ function BranchDetail() {
         </section>
       </main>
       <SiteFooter />
+      <WhatsAppFab />
     </>
   );
 }

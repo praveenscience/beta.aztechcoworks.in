@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Building2, Rocket, Users, ShieldCheck } from "lucide-react";
@@ -136,6 +136,7 @@ function CorporatePage() {
         </section>
       </main>
       <SiteFooter />
+      <WhatsAppFab />
     </>
   );
 }

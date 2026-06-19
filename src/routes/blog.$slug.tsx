@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useStore } from "@/lib/store";
 import { unsplash } from "@/lib/format";
 
@@ -31,6 +31,9 @@ function BlogPost() {
             src={unsplash(post.cover, 1400, 800)}
             alt={post.title}
             className="mt-8 aspect-[16/9] w-full rounded-2xl object-cover shadow-elegant"
+            loading="lazy"
+            width={1400}
+            height={800}
           />
           <div className="prose prose-neutral mt-8 max-w-none dark:prose-invert">
             <p>{post.body}</p>
@@ -44,6 +47,7 @@ function BlogPost() {
         </article>
       </main>
       <SiteFooter />
+      <WhatsAppFab />
     </>
   );
 }

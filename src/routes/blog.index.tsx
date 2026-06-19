@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useStore } from "@/lib/store";
 import { unsplash } from "@/lib/format";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/blog/")({
 
 function BlogIndex() {
   const posts = useStore((s) => s.blog);
+  const gridRef = useScrollReveal<HTMLDivElement>();
   return (
     <>
       <SiteHeader />
@@ -27,11 +29,11 @@ function BlogIndex() {
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Workspace strategy, productivity, and startup guides — written for Coimbatore's founders.
         </p>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+        <div ref={gridRef} className="mt-10 grid gap-6 opacity-0 md:grid-cols-3">
           {posts.map((p) => (
             <Link key={p.id} to="/blog/$slug" params={{ slug: p.slug }}>
               <Card className="overflow-hidden transition hover:shadow-elegant">
-                <img src={unsplash(p.cover, 800, 500)} alt={p.title} className="aspect-[16/10] w-full object-cover" />
+                <img src={unsplash(p.cover, 800, 500)} alt={p.title} className="aspect-[16/10] w-full object-cover" loading="lazy" width={800} height={500} />
                 <CardHeader>
                   <CardTitle className="text-lg">{p.title}</CardTitle>
                   <CardDescription>{p.excerpt}</CardDescription>
@@ -45,6 +47,7 @@ function BlogIndex() {
         </div>
       </main>
       <SiteFooter />
+      <WhatsAppFab />
     </>
   );
 }

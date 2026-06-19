@@ -3,10 +3,11 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/lib/store";
 import { unsplash } from "@/lib/format";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 export const Route = createFileRoute("/branches/")({
   head: () => ({
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/branches/")({
 
 function BranchesPage() {
   const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
+  const gridRef = useScrollReveal<HTMLDivElement>();
   return (
     <>
       <SiteHeader />
@@ -31,11 +33,11 @@ function BranchesPage() {
             Premium workspaces in every key business district. Live availability across every branch.
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div ref={gridRef} className="grid gap-6 opacity-0 md:grid-cols-2 lg:grid-cols-3">
           {branches.map((b) => (
-            <Card key={b.id} className="overflow-hidden border-border/60 transition hover:shadow-elegant">
-              <div className="relative">
-                <img src={unsplash(b.photo, 900, 600)} alt={b.name} className="aspect-[16/10] w-full object-cover" />
+            <Card key={b.id} className="group overflow-hidden border-border/60 transition hover:shadow-elegant">
+              <div className="relative overflow-hidden">
+                <img src={unsplash(b.photo, 900, 600)} alt={b.name} className="aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" width={900} height={563} />
                 <Badge className="absolute left-3 top-3 bg-background/90 text-foreground hover:bg-background">
                   <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-success" />
                   {b.availableSeats} seats free
@@ -60,6 +62,7 @@ function BranchesPage() {
         </div>
       </main>
       <SiteFooter />
+      <WhatsAppFab />
     </>
   );
 }

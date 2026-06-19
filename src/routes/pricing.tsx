@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, WhatsAppFab } from "@/components/site-chrome";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/lib/store";
 import { inr, seatTypeLabels } from "@/lib/format";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -33,6 +34,8 @@ function PricingPage() {
   const subtotal = plan ? plan.basePrice * seats * months : 0;
   const gst = Math.round(subtotal * (plan?.gstRate ?? 18) / 100);
   const total = subtotal + gst;
+  const plansRef = useScrollReveal<HTMLDivElement>();
+  const calcRef = useScrollReveal<HTMLDivElement>();
 
   return (
     <>
@@ -46,7 +49,7 @@ function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div ref={plansRef} className="mt-12 grid gap-6 opacity-0 md:grid-cols-2 lg:grid-cols-4">
           {plans.map((p, i) => (
             <Card key={p.id} className={`flex flex-col ${i === 1 ? "border-accent/40 shadow-glow" : ""}`}>
               {i === 1 && <Badge className="absolute -top-3 right-4 bg-accent text-accent-foreground">Most popular</Badge>}
@@ -73,7 +76,7 @@ function PricingPage() {
           ))}
         </div>
 
-        <Card className="mt-16">
+        <Card ref={calcRef} className="mt-16 opacity-0">
           <CardHeader>
             <CardTitle>Pricing calculator</CardTitle>
             <CardDescription>Estimate your monthly investment.</CardDescription>
@@ -138,6 +141,7 @@ function PricingPage() {
         </Card>
       </main>
       <SiteFooter />
+      <WhatsAppFab />
     </>
   );
 }
