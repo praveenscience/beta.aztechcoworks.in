@@ -1,0 +1,21 @@
+{
+  "name": "aztech-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node --import tsx src/index.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.2",
+    "@types/express-session": "^1.18.1",
+    "tsx": "^4.19.0"
+  }
+}
