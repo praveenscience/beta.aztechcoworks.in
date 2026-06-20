@@ -7,6 +7,7 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { MockBanner } from "@/components/mock-banner";
 
 function NotFoundComponent() {
   return (
@@ -75,6 +76,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <HeadContent />
+      <MockBanner />
       <Outlet />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
