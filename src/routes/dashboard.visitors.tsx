@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useMe, useVisitors, useBranches } from "@/lib/queries";
 import { useStore } from "@/lib/store";
-import { useShallow } from "zustand/react/shallow";
 import { QrCode } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,9 +17,11 @@ export const Route = createFileRoute("/dashboard/visitors")({
 });
 
 function VisitorsPage() {
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
-  const branches = useStore((s) => s.branches);
-  const visitors = useStore(useShallow((s) => s.visitors.filter((v) => v.hostUserId === me?.id)));
+  const { data: me } = useMe();
+  const { data: branches = [] } = useBranches();
+  const { data: allVisitors = [] } = useVisitors();
+  const visitors = allVisitors.filter((v) => v.hostUserId === me?.id);
+  // TODO: wire addVisitor to API mutation
   const addVisitor = useStore((s) => s.addVisitor);
   const [form, setForm] = useState({ name: "", phone: "", purpose: "Meeting", branchId: me?.branchId ?? branches[0]?.id, expectedAt: new Date(Date.now() + 3600000).toISOString().slice(0, 16) });
   if (!me) return null;

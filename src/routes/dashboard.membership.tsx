@@ -7,21 +7,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useShallow } from "zustand/react/shallow";
 import { toast } from "sonner";
+import { useMe, useMyMemberships, usePlans, useBranches } from "@/lib/queries";
 import { useStore } from "@/lib/store";
-import { inr, seatTypeLabels } from "@/lib/format";
+import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/membership")({
   component: MembershipPage,
 });
 
 function MembershipPage() {
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
-  const plans = useStore((s) => s.plans);
-  const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
-  const memberships = useStore(useShallow((s) => s.memberships.filter((m) => m.userId === me?.id)));
+  const { data: me } = useMe();
+  const { data: plans = [] } = usePlans();
+  const { data: allBranches = [] } = useBranches();
+  const branches = allBranches.filter((b) => b.isActive);
+  const { data: memberships = [] } = useMyMemberships();
+  // TODO: wire createMembership to API mutation
   const createMembership = useStore((s) => s.createMembership);
+  // TODO: wire cancelMembership to API mutation
   const cancelMembership = useStore((s) => s.cancelMembership);
 
   const [planId, setPlanId] = useState(plans[1]?.id);

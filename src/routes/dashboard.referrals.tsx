@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useShallow } from "zustand/react/shallow";
 import { Copy, Gift, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useMe } from "@/lib/queries";
 import { useStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 import { whatsappLink, inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/referrals")({
@@ -13,7 +14,8 @@ export const Route = createFileRoute("/dashboard/referrals")({
 });
 
 function ReferralsPage() {
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
+  const { data: me } = useMe();
+  // No API endpoint for referrals yet — keep useStore
   const referrals = useStore(useShallow((s) => s.referrals.filter((r) => r.referrerUserId === me?.id)));
   if (!me) return null;
   const rewarded = referrals.filter((r) => r.status === "rewarded");

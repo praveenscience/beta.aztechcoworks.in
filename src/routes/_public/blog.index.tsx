@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore } from "@/lib/store";
+import { useBlog } from "@/lib/queries";
 import { unsplash } from "@/lib/format";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_public/blog/")({
 });
 
 function BlogIndex() {
-  const posts = useStore((s) => s.blog);
+  const { data: posts = [] } = useBlog();
   const gridRef = useScrollReveal<HTMLDivElement>();
   return (
       <main className="container mx-auto px-4 py-12 md:px-6 md:py-16">

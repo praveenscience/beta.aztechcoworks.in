@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useShallow } from "zustand/react/shallow";
-import { useStore } from "@/lib/store";
+import { usePlans, useBranches } from "@/lib/queries";
 import { inr, seatTypeLabels } from "@/lib/format";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
@@ -23,8 +22,8 @@ export const Route = createFileRoute("/_public/pricing")({
 });
 
 function PricingPage() {
-  const plans = useStore((s) => s.plans);
-  const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
+  const { data: plans = [] } = usePlans();
+  const { data: branches = [] } = useBranches();
   const [planId, setPlanId] = useState(plans[1]?.id ?? plans[0]?.id);
   const [branchId, setBranchId] = useState(branches[0]?.id);
   const [seats, setSeats] = useState(1);

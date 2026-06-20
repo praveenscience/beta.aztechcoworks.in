@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useShallow } from "zustand/react/shallow";
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { useMe, useBranches, useMyBookings, usePlans } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import { inr } from "@/lib/format";
 
@@ -18,10 +18,12 @@ export const Route = createFileRoute("/dashboard/bookings")({
 });
 
 function BookingsPage() {
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
-  const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
+  const { data: me } = useMe();
+  const { data: allBranches = [] } = useBranches();
+  const branches = allBranches.filter((b) => b.isActive);
+  const { data: bookings = [] } = useMyBookings();
   const rooms = useStore((s) => s.meetingRooms);
-  const bookings = useStore(useShallow((s) => s.bookings.filter((b) => b.userId === me?.id)));
+  // TODO: wire createBooking to API mutation
   const createBooking = useStore((s) => s.createBooking);
 
   const [branchId, setBranchId] = useState(me?.branchId ?? branches[0]?.id);
@@ -109,6 +111,7 @@ function BookingsPage() {
           <CardContent>
             <Button onClick={() => {
               if (!branchId) return;
+              // TODO: wire to API mutation
               createBooking({
                 userId: me.id,
                 branchId,
@@ -134,7 +137,7 @@ function BookingsPage() {
             <tbody>
               {bookings.map((b) => {
                 const room = rooms.find((r) => r.id === b.resourceId);
-                const branch = branches.find((br) => br.id === b.branchId);
+                const branch = allBranches.find((br) => br.id === b.branchId);
                 return (
                   <tr key={b.id} className="border-t">
                     <td className="py-3">{room?.name ?? b.resourceType.replace("_", " ")}</td>

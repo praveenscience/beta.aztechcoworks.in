@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useStore } from "@/lib/store";
-import { useShallow } from "zustand/react/shallow";
+import { useBranches, useBookSiteVisit, useCreateLead } from "@/lib/queries";
 import { Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,10 +33,9 @@ const SLOTS = [
 
 function BookVisit() {
   const search = Route.useSearch();
-  const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
-  const addLead = useStore((s) => s.addLead);
-  const bookSiteVisit = useStore((s) => s.bookSiteVisit);
-  const moveLeadStage = useStore((s) => s.moveLeadStage);
+  const { data: branches = [] } = useBranches();
+  const bookSiteVisit = useBookSiteVisit();
+  const createLead = useCreateLead();
   const navigate = useNavigate();
 
   const defaultBranch = useMemo(
@@ -53,35 +51,41 @@ function BookVisit() {
   const onSelfServe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!branchId) return;
-    const lead = addLead({
-      ...form,
-      source: "website",
-      branchId,
-      message: `Site visit booked for ${date} ${slot}`,
-    });
-    moveLeadStage(lead.id, "site_visit");
-    bookSiteVisit({
-      leadId: lead.id,
-      branchId,
-      scheduledAt: new Date(`${date} ${slot}`).toISOString(),
-      mode: "self_serve",
-    });
-    toast.success(`Visit confirmed for ${date} at ${slot}.`);
-    setForm({ name: "", email: "", phone: "" });
-    navigate({ to: "/" });
+    bookSiteVisit.mutate(
+      {
+        ...form,
+        source: "website",
+        branchId,
+        scheduledAt: new Date(`${date} ${slot}`).toISOString(),
+        mode: "self_serve",
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Visit confirmed for ${date} at ${slot}.`);
+          setForm({ name: "", email: "", phone: "" });
+          navigate({ to: "/" });
+        },
+      },
+    );
   };
 
   const onRequest = (e: React.FormEvent) => {
     e.preventDefault();
     if (!branchId) return;
-    addLead({
-      ...form,
-      source: "website",
-      branchId,
-      message: `Requested a visit — please confirm a slot`,
-    });
-    toast.success("Got it! Our sales team will call you to confirm a slot.");
-    setForm({ name: "", email: "", phone: "" });
+    createLead.mutate(
+      {
+        ...form,
+        source: "website",
+        branchId,
+        message: `Requested a visit — please confirm a slot`,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Got it! Our sales team will call you to confirm a slot.");
+          setForm({ name: "", email: "", phone: "" });
+        },
+      },
+    );
   };
 
   return (

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageCircle, ArrowRight, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useStore } from "@/lib/store";
+import { useLeads, useUsers, useMe, useUpdateLead } from "@/lib/queries";
 import type { LeadStage } from "@/types";
 import { stageLabels, inr, whatsappLink } from "@/lib/format";
 
@@ -18,12 +18,16 @@ export const Route = createFileRoute("/staff/sales/")({
 const STAGES: LeadStage[] = ["new", "contacted", "qualified", "site_visit", "proposal", "negotiation", "won", "lost"];
 
 function SalesPipeline() {
-  const leads = useStore((s) => s.leads);
-  const users = useStore((s) => s.users);
-  const moveLeadStage = useStore((s) => s.moveLeadStage);
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
+  const { data: leads = [] } = useLeads();
+  const { data: users = [] } = useUsers();
+  const { data: me } = useMe();
+  const updateLead = useUpdateLead();
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [view, setView] = useState<"kanban" | "table">("kanban");
+
+  const moveLeadStage = (id: string, stage: LeadStage) => {
+    updateLead.mutate({ id, stage });
+  };
 
   const visible = leads.filter((l) => {
     if (me?.role === "sales_exec" && ownerFilter === "mine") return l.ownerId === me.id;

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { dashboardHomeFor } from "@/components/site-chrome";
 import { ArrowRight, Sparkles, User } from "lucide-react";
 import { toast } from "sonner";
-import { useStore } from "@/lib/store";
+import { useDemoLogin, useLogin, useRegister } from "@/lib/queries";
 import type { Role } from "@/types";
 import { roleLabels } from "@/lib/format";
 
@@ -31,39 +31,41 @@ const DEMO_ROLES: { id: string; label: string; role: Role; desc: string }[] = [
 ];
 
 function AuthPage() {
-  const signIn = useStore((s) => s.signIn);
-  const addUserAndSignIn = useStore((s) => s.upsertUser);
-  const users = useStore((s) => s.users);
   const navigate = useNavigate();
+  const demoLogin = useDemoLogin();
+  const login = useLogin();
+  const register = useRegister();
   const [form, setForm] = useState({ email: "", password: "" });
 
   const pickDemo = (userId: string, role: Role) => {
-    signIn(userId);
-    toast.success(`Signed in as ${roleLabels[role]}`);
-    navigate({ to: dashboardHomeFor(role) });
+    demoLogin.mutate(userId, {
+      onSuccess: () => {
+        toast.success(`Signed in as ${roleLabels[role]}`);
+        navigate({ to: dashboardHomeFor(role) });
+      },
+    });
   };
 
-  const signupAsMember = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email) return;
-    const existing = users.find((u) => u.email === form.email);
-    if (existing) {
-      signIn(existing.id);
-      navigate({ to: dashboardHomeFor(existing.role) });
-      return;
-    }
-    const id = `u_${Math.random().toString(36).slice(2, 9)}`;
-    addUserAndSignIn({
-      id,
-      name: form.email.split("@")[0],
-      email: form.email,
-      role: "member",
-      referralCode: `${form.email.split("@")[0].toUpperCase().slice(0, 6)}-NEW`,
-      createdAt: new Date().toISOString(),
+    if (!form.email || !form.password) return;
+
+    // Try login first, if it fails try register
+    login.mutate(form, {
+      onSuccess: (user) => {
+        toast.success(`Welcome back, ${user.name}!`);
+        navigate({ to: dashboardHomeFor(user.role) });
+      },
+      onError: () => {
+        register.mutate({ name: form.email.split("@")[0], ...form }, {
+          onSuccess: (user) => {
+            toast.success("Welcome to Aztech!");
+            navigate({ to: dashboardHomeFor(user.role) });
+          },
+          onError: (err) => toast.error(err.message),
+        });
+      },
     });
-    signIn(id);
-    toast.success("Welcome to Aztech!");
-    navigate({ to: "/dashboard" });
   };
 
   return (
@@ -74,13 +76,14 @@ function AuthPage() {
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight">Pick a role to explore</h1>
           <p className="mt-2 text-muted-foreground">
-            This is a v1 build with mock data. Click any role to instantly enter that dashboard.
+            Click any role to instantly enter that dashboard. All demo accounts use password <code className="text-foreground">demo1234</code>.
           </p>
           <div className="mt-6 grid gap-3">
             {DEMO_ROLES.map((r) => (
               <button
                 key={r.id}
                 onClick={() => pickDemo(r.id, r.role)}
+                disabled={demoLogin.isPending}
                 className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition hover:border-accent/50 hover:shadow-soft"
               >
                 <div className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground">
@@ -99,27 +102,26 @@ function AuthPage() {
 
         <Card className="self-start">
           <CardHeader>
-            <CardTitle>Or sign up as a new member</CardTitle>
-            <CardDescription>Creates a member account instantly. No email verification in this demo.</CardDescription>
+            <CardTitle>Or sign in / sign up</CardTitle>
+            <CardDescription>Use your email and password. New accounts are created automatically.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={signupAsMember} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
               <div>
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="(any value, demo)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                <Input id="password" type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               </div>
-              <Button className="w-full" type="submit" size="lg">Sign in / Create account</Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Existing user? Use your email to log back in.
-              </p>
+              <Button className="w-full" type="submit" size="lg" disabled={login.isPending || register.isPending}>
+                {login.isPending || register.isPending ? "Signing in..." : "Sign in / Create account"}
+              </Button>
             </form>
             <div className="mt-6 rounded-lg bg-secondary/60 p-4 text-xs text-muted-foreground">
-              <strong className="text-foreground">Heads up:</strong> This demo uses an in-memory store (zustand + localStorage).
-              In production, swap in Lovable Cloud auth + Postgres tables via the schema shipped in <code>src/lib/store.ts</code>.
+              <strong className="text-foreground">Note:</strong> This connects to the local API server at <code>localhost:3001</code>.
+              Make sure the backend is running: <code>cd server && npm run dev</code>.
               <Link to="/" className="ml-1 text-accent hover:underline">Back to site</Link>.
             </div>
           </CardContent>

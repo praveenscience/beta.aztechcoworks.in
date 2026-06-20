@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
-import { useStore } from "@/lib/store";
+import { useAllInvoices, useUsers } from "@/lib/queries";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/staff/finance")({
@@ -13,8 +13,8 @@ export const Route = createFileRoute("/staff/finance")({
 });
 
 function FinancePage() {
-  const invoices = useStore((s) => s.invoices);
-  const users = useStore((s) => s.users);
+  const { data: invoices = [] } = useAllInvoices();
+  const { data: users = [] } = useUsers();
   const totalRevenue = invoices.filter((i) => i.status === "paid").reduce((s, i) => s + i.total, 0);
   const totalGST = invoices.filter((i) => i.status === "paid").reduce((s, i) => s + i.gst, 0);
   const pending = invoices.filter((i) => i.status === "pending").reduce((s, i) => s + i.total, 0);

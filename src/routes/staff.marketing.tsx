@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore } from "@/lib/store";
+import { useLeads, useBlog, useTestimonials } from "@/lib/queries";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 export const Route = createFileRoute("/staff/marketing")({
@@ -9,8 +9,10 @@ export const Route = createFileRoute("/staff/marketing")({
 });
 
 function MarketingPage() {
-  const leads = useStore((s) => s.leads);
-  const blog = useStore((s) => s.blog);
+  const { data: leads = [] } = useLeads();
+  const { data: blog = [] } = useBlog();
+  // useTestimonials available but not displayed yet in the current UI
+  // const { data: testimonials = [] } = useTestimonials();
 
   const bySource = ["website", "whatsapp", "walk_in", "referral", "corporate"].map((src) => ({
     name: src,

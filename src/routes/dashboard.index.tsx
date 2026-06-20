@@ -3,9 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard-shell";
-import { useShallow } from "zustand/react/shallow";
 import { Calendar, QrCode, Receipt, Gift, Building2 } from "lucide-react";
-import { useStore } from "@/lib/store";
+import { useMe, useBranches, useMyMemberships, useMyInvoices, useMyBookings, usePlans } from "@/lib/queries";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/")({
@@ -13,16 +12,17 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function MemberOverview() {
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
-  const memberships = useStore(useShallow((s) => s.memberships.filter((m) => m.userId === me?.id && m.status === "active")));
-  const bookings = useStore(useShallow((s) => s.bookings.filter((b) => b.userId === me?.id)));
-  const invoices = useStore(useShallow((s) => s.invoices.filter((i) => i.userId === me?.id)));
-  const plans = useStore((s) => s.plans);
-  const branches = useStore((s) => s.branches);
+  const { data: me } = useMe();
+  const { data: branches = [] } = useBranches();
+  const { data: memberships = [] } = useMyMemberships();
+  const { data: invoices = [] } = useMyInvoices();
+  const { data: bookings = [] } = useMyBookings();
+  const { data: plans = [] } = usePlans();
   if (!me) return null;
 
-  const activePlan = plans.find((p) => p.id === memberships[0]?.planId);
-  const branch = branches.find((b) => b.id === memberships[0]?.branchId);
+  const activeMemberships = memberships.filter((m) => m.status === "active");
+  const activePlan = plans.find((p) => p.id === activeMemberships[0]?.planId);
+  const branch = branches.find((b) => b.id === activeMemberships[0]?.branchId);
 
   return (
     <>

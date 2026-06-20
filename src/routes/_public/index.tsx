@@ -17,8 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useShallow } from "zustand/react/shallow";
-import { useStore } from "@/lib/store";
+import { useBranches, usePlans, useTestimonials } from "@/lib/queries";
 import { unsplash, whatsappLink, inr } from "@/lib/format";
 import { useCounter } from "@/hooks/use-counter";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
@@ -43,9 +42,9 @@ export const Route = createFileRoute("/_public/")({
 });
 
 function Home() {
-  const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
-  const plans = useStore((s) => s.plans);
-  const testimonials = useStore((s) => s.testimonials);
+  const { data: branches = [] } = useBranches();
+  const { data: plans = [] } = usePlans();
+  const { data: testimonials = [] } = useTestimonials();
   const totalSeats = branches.reduce((a, b) => a + b.totalSeats, 0);
   const avail = branches.reduce((a, b) => a + b.availableSeats, 0);
 

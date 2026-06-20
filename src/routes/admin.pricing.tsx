@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { usePlans } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import type { Plan, SeatType } from "@/types";
 import { inr } from "@/lib/format";
@@ -21,9 +22,12 @@ export const Route = createFileRoute("/admin/pricing")({
 const seatTypes: SeatType[] = ["hot_desk", "dedicated", "cabin", "team_office"];
 
 function AdminPricing() {
-  const plans = useStore((s) => s.plans);
+  const { data: plans = [] } = usePlans();
+  // TODO: wire upsertPlan to API mutation
   const upsertPlan = useStore((s) => s.upsertPlan);
+  // TODO: wire deletePlan to API mutation
   const deletePlan = useStore((s) => s.deletePlan);
+  // No API endpoint for coupons — keep useStore
   const coupons = useStore((s) => s.coupons);
   const upsertCoupon = useStore((s) => s.upsertCoupon);
   const deleteCoupon = useStore((s) => s.deleteCoupon);

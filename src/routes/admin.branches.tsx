@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Badge } from "@/components/ui/badge";
 import { Plus, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useAllBranches } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import type { Branch } from "@/types";
 import { unsplash } from "@/lib/format";
@@ -36,8 +37,10 @@ const EMPTY: Branch = {
 };
 
 function AdminBranches() {
-  const branches = useStore((s) => s.branches);
+  const { data: branches = [] } = useAllBranches();
+  // TODO: wire upsertBranch to API mutation
   const upsertBranch = useStore((s) => s.upsertBranch);
+  // TODO: wire archiveBranch to API mutation
   const archiveBranch = useStore((s) => s.archiveBranch);
   const [editing, setEditing] = useState<Branch | null>(null);
   const [open, setOpen] = useState(false);

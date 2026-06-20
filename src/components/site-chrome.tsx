@@ -3,7 +3,7 @@ import { Menu, MapPin, MessageCircle, Sparkles, Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useStore } from "@/lib/store";
+import { useMe } from "@/lib/queries";
 import { whatsappLink } from "@/lib/format";
 import type { Role } from "@/types";
 
@@ -17,9 +17,7 @@ const navItems = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
-  const currentUserId = useStore((s) => s.currentUserId);
-  const users = useStore((s) => s.users);
-  const me = users.find((u) => u.id === currentUserId);
+  const { data: me } = useMe();
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");

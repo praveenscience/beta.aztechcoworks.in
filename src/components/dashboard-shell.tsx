@@ -24,7 +24,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useStore } from "@/lib/store";
+import { useMe, useLogout } from "@/lib/queries";
 import type { Role } from "@/types";
 import { roleLabels } from "@/lib/format";
 
@@ -79,12 +79,18 @@ const navsByRole: Record<Role, NavItem[]> = {
 };
 
 export function DashboardShell() {
-  const currentUserId = useStore((s) => s.currentUserId);
-  const users = useStore((s) => s.users);
-  const signOut = useStore((s) => s.signOut);
-  const me = users.find((u) => u.id === currentUserId);
+  const { data: me, isLoading } = useMe();
+  const logout = useLogout();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background">
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   if (!me) {
     return (
@@ -144,7 +150,7 @@ export function DashboardShell() {
         <Button asChild variant="outline" size="sm" className="flex-1">
           <Link to="/">Site</Link>
         </Button>
-        <Button onClick={signOut} variant="ghost" size="icon" aria-label="Sign out">
+        <Button onClick={() => logout.mutate()} variant="ghost" size="icon" aria-label="Sign out">
           <LogOut className="h-4 w-4" />
         </Button>
       </div>

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/lib/store";
+import { useBlogPost } from "@/lib/queries";
 import { unsplash } from "@/lib/format";
 
 export const Route = createFileRoute("/_public/blog/$slug")({
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_public/blog/$slug")({
 
 function BlogPost() {
   const { slug } = Route.useParams();
-  const post = useStore((s) => s.blog.find((p) => p.slug === slug));
+  const { data: post } = useBlogPost(slug);
   if (!post) throw notFound();
 
   return (

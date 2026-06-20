@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useVisitors, useBranches, useMe } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import { LogIn, LogOut, ScanLine, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -14,13 +15,16 @@ export const Route = createFileRoute("/staff/reception")({
 });
 
 function Reception() {
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
-  const visitors = useStore((s) => s.visitors);
+  const { data: me } = useMe();
+  const { data: visitors = [] } = useVisitors();
+  const { data: branches = [] } = useBranches();
+  // No API endpoint for siteVisits list — keep useStore
   const siteVisits = useStore((s) => s.siteVisits);
   const leads = useStore((s) => s.leads);
-  const branches = useStore((s) => s.branches);
+  // TODO: wire checkIn/checkOut to API mutations
   const checkIn = useStore((s) => s.checkInVisitor);
   const checkOut = useStore((s) => s.checkOutVisitor);
+  // TODO: wire addLead to API mutation
   const addLead = useStore((s) => s.addLead);
   const [walkin, setWalkin] = useState({ name: "", phone: "" });
 
@@ -93,6 +97,7 @@ function Reception() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                // TODO: wire to API
                 addLead({
                   name: walkin.name,
                   email: `walkin+${Date.now()}@aztech.local`,

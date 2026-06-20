@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useShallow } from "zustand/react/shallow";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useStore } from "@/lib/store";
+import { useBranch, usePlans, useCreateLead } from "@/lib/queries";
 import { unsplash, inr, whatsappLink, seatTypeLabels } from "@/lib/format";
 
 export const Route = createFileRoute("/_public/branches/$slug")({
@@ -19,25 +18,32 @@ export const Route = createFileRoute("/_public/branches/$slug")({
 
 function BranchDetail() {
   const { slug } = Route.useParams();
-  const branch = useStore((s) => s.branches.find((b) => b.slug === slug));
-  const seatInventory = useStore(useShallow((s) => s.seatInventory.filter((si) => si.branchId === branch?.id)));
-  const rooms = useStore(useShallow((s) => s.meetingRooms.filter((m) => m.branchId === branch?.id)));
-  const plans = useStore((s) => s.plans);
-  const addLead = useStore((s) => s.addLead);
+  const { data: branch } = useBranch(slug);
+  const { data: plans = [] } = usePlans();
+  const createLead = useCreateLead();
   const [form, setForm] = useState({ name: "", email: "", phone: "", planId: "", message: "" });
 
   if (!branch) throw notFound();
 
+  const seatInventory = branch.seatInventory;
+  const rooms = branch.meetingRooms;
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    addLead({
-      ...form,
-      source: "website",
-      branchId: branch.id,
-      planId: form.planId || undefined,
-    });
-    toast.success("Got it! Our team will reach out shortly.");
-    setForm({ name: "", email: "", phone: "", planId: "", message: "" });
+    createLead.mutate(
+      {
+        ...form,
+        source: "website",
+        branchId: branch.id,
+        planId: form.planId || undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Got it! Our team will reach out shortly.");
+          setForm({ name: "", email: "", phone: "", planId: "", message: "" });
+        },
+      },
+    );
   };
 
   return (

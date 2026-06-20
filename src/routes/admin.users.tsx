@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useUsers, useBranches } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import type { Role } from "@/types";
 import { roleLabels } from "@/lib/format";
@@ -20,8 +21,9 @@ export const Route = createFileRoute("/admin/users")({
 const ALL_ROLES: Role[] = ["member", "reception", "sales_exec", "sales_manager", "branch_manager", "finance", "marketing", "super_admin"];
 
 function AdminUsers() {
-  const users = useStore((s) => s.users);
-  const branches = useStore((s) => s.branches);
+  const { data: users = [] } = useUsers();
+  const { data: branches = [] } = useBranches();
+  // TODO: wire upsertUser to API mutation
   const upsertUser = useStore((s) => s.upsertUser);
   const [form, setForm] = useState({ name: "", email: "", role: "member" as Role, branchId: "" });
 

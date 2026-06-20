@@ -3,8 +3,7 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useShallow } from "zustand/react/shallow";
-import { useStore } from "@/lib/store";
+import { useBranches } from "@/lib/queries";
 import { unsplash } from "@/lib/format";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
@@ -19,7 +18,7 @@ export const Route = createFileRoute("/_public/branches/")({
 });
 
 function BranchesPage() {
-  const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
+  const { data: branches = [] } = useBranches();
   const gridRef = useScrollReveal<HTMLDivElement>();
   return (
       <main className="container mx-auto px-4 py-12 md:px-6 md:py-16">

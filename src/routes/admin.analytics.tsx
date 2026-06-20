@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useLeads, useAllBranches, useAllInvoices, useUsers } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import { inr } from "@/lib/format";
 
@@ -10,14 +11,15 @@ export const Route = createFileRoute("/admin/analytics")({
 });
 
 function Analytics() {
-  const branches = useStore((s) => s.branches);
-  const leads = useStore((s) => s.leads);
-  const invoices = useStore((s) => s.invoices);
+  const { data: branches = [] } = useAllBranches();
+  const { data: leads = [] } = useLeads();
+  const { data: invoices = [] } = useAllInvoices();
+  // useMyMemberships() only returns current user's — keep useStore for all memberships
   const memberships = useStore((s) => s.memberships);
 
   const totalSeats = branches.reduce((s, b) => s + b.totalSeats, 0);
   const occupied = branches.reduce((s, b) => s + (b.totalSeats - b.availableSeats), 0);
-  const occupancyPct = Math.round((occupied / totalSeats) * 100);
+  const occupancyPct = totalSeats ? Math.round((occupied / totalSeats) * 100) : 0;
   const revenue = invoices.filter((i) => i.status === "paid").reduce((s, i) => s + i.total, 0);
   const won = leads.filter((l) => l.stage === "won").length;
   const conversion = leads.length ? Math.round((won / leads.length) * 100) : 0;

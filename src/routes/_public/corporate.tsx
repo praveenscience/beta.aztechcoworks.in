@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useStore } from "@/lib/store";
-import { useShallow } from "zustand/react/shallow";
+import { useCreateLead, useBranches } from "@/lib/queries";
 import { Building2, Rocket, Users, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,8 +22,8 @@ export const Route = createFileRoute("/_public/corporate")({
 });
 
 function CorporatePage() {
-  const addLead = useStore((s) => s.addLead);
-  const branches = useStore(useShallow((s) => s.branches.filter((b) => b.isActive)));
+  const createLead = useCreateLead();
+  const { data: branches = [] } = useBranches();
   const [form, setForm] = useState({
     name: "",
     company: "",
@@ -38,19 +37,25 @@ function CorporatePage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    addLead({
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      source: "corporate",
-      branchId: form.branchId,
-      teamSize: form.teamSize,
-      timeline: form.timeline,
-      message: form.message,
-      customFields: { company: form.company },
-    });
-    toast.success("Thanks! Our enterprise team will reach out within 1 business hour.");
-    setForm({ ...form, name: "", company: "", email: "", phone: "", message: "" });
+    createLead.mutate(
+      {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        source: "corporate",
+        branchId: form.branchId,
+        teamSize: form.teamSize,
+        timeline: form.timeline,
+        message: form.message,
+        customFields: { company: form.company },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Thanks! Our enterprise team will reach out within 1 business hour.");
+          setForm({ ...form, name: "", company: "", email: "", phone: "", message: "" });
+        },
+      },
+    );
   };
 
   return (

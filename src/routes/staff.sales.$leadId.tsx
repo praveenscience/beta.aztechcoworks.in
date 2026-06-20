@@ -8,9 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useShallow } from "zustand/react/shallow";
 import { ArrowLeft, MessageCircle, Phone, Mail, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useLead, useUsers, useMe, usePlans, useTasks, useUpdateLead, useUpdateTask } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import type { LeadStage } from "@/types";
 import { stageLabels, inr, whatsappLink } from "@/lib/format";
@@ -23,21 +23,36 @@ export const Route = createFileRoute("/staff/sales/$leadId")({
 
 function LeadDetail() {
   const { leadId } = Route.useParams();
-  const lead = useStore((s) => s.leads.find((l) => l.id === leadId));
-  const users = useStore((s) => s.users);
-  const activities = useStore(useShallow((s) => s.leadActivities.filter((a) => a.leadId === leadId)));
-  const tasks = useStore(useShallow((s) => s.tasks.filter((t) => t.leadId === leadId)));
-  const moveLeadStage = useStore((s) => s.moveLeadStage);
-  const updateLead = useStore((s) => s.updateLead);
+  const { data: leadData } = useLead(leadId);
+  const lead = leadData ? { ...leadData } : undefined;
+  const activities = leadData?.activities ?? [];
+  const { data: users = [] } = useUsers();
+  const { data: me } = useMe();
+  const { data: allTasks = [] } = useTasks();
+  const tasks = allTasks.filter((t) => t.leadId === leadId);
+  const updateLeadMutation = useUpdateLead();
+  const updateTaskMutation = useUpdateTask();
+  // TODO: wire addLeadActivity to API — no endpoint yet
   const addLeadActivity = useStore((s) => s.addLeadActivity);
+  // TODO: wire addTask to API — no endpoint yet
   const addTask = useStore((s) => s.addTask);
-  const toggleTask = useStore((s) => s.toggleTask);
-  const me = useStore((s) => s.users.find((u) => u.id === s.currentUserId));
 
   const [note, setNote] = useState("");
   const [newTask, setNewTask] = useState("");
 
   if (!lead) throw notFound();
+
+  const moveLeadStage = (id: string, stage: LeadStage) => {
+    updateLeadMutation.mutate({ id, stage });
+  };
+
+  const updateLead = (id: string, patch: Record<string, unknown>) => {
+    updateLeadMutation.mutate({ id, ...patch });
+  };
+
+  const toggleTask = (id: string, done: boolean) => {
+    updateTaskMutation.mutate({ id, done: !done });
+  };
 
   return (
     <>
@@ -94,6 +109,7 @@ function LeadDetail() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!note) return;
+                  // TODO: wire to API
                   addLeadActivity({ leadId: lead.id, type: "note", description: note, actorId: me?.id });
                   setNote("");
                   toast.success("Note added");
@@ -162,6 +178,7 @@ function LeadDetail() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!newTask) return;
+                  // TODO: wire to API
                   addTask({
                     leadId: lead.id,
                     assigneeId: lead.ownerId ?? me?.id ?? "u_sales",
@@ -179,7 +196,7 @@ function LeadDetail() {
               <div className="space-y-2">
                 {tasks.map((t) => (
                   <label key={t.id} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={t.done} onChange={() => toggleTask(t.id)} />
+                    <input type="checkbox" checked={t.done} onChange={() => toggleTask(t.id, t.done)} />
                     <span className={t.done ? "line-through text-muted-foreground" : ""}>{t.title}</span>
                     <span className="ml-auto text-xs text-muted-foreground">{new Date(t.dueAt).toLocaleDateString("en-IN")}</span>
                   </label>
