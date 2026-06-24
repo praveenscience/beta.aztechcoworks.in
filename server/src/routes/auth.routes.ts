@@ -1,20 +1,17 @@
 import { Router } from "express";
-import { db, hashPassword } from "../store.js";
+import { db, hashPassword, verifyPassword } from "../store.js";
 import { uid } from "../uid.js";
+import { validate, loginSchema, registerSchema } from "../validation.js";
 import type { User } from "../types.js";
 
 const router = Router();
 
 // POST /api/auth/login  — email + password
-router.post("/login", (req, res) => {
-  const { email, password } = req.body ?? {};
-  if (!email || !password) {
-    res.status(400).json({ error: "Email and password required" });
-    return;
-  }
+router.post("/login", validate(loginSchema), (req, res) => {
+  const { email, password } = req.body;
 
   const user = db.users.findByEmail(email);
-  if (!user || user.passwordHash !== hashPassword(password)) {
+  if (!user || !verifyPassword(password, user.passwordHash)) {
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
@@ -25,12 +22,8 @@ router.post("/login", (req, res) => {
 });
 
 // POST /api/auth/register  — create a member account
-router.post("/register", (req, res) => {
-  const { name, email, password, phone } = req.body ?? {};
-  if (!email || !password || !name) {
-    res.status(400).json({ error: "Name, email, and password required" });
-    return;
-  }
+router.post("/register", validate(registerSchema), (req, res) => {
+  const { name, email, password, phone } = req.body;
 
   if (db.users.findByEmail(email)) {
     res.status(409).json({ error: "Email already registered" });
@@ -76,16 +69,18 @@ router.post("/logout", (req, res) => {
   });
 });
 
-// POST /api/auth/demo/:userId — quick demo sign-in (no password)
-router.post("/demo/:userId", (req, res) => {
-  const user = db.users.find(req.params.userId);
-  if (!user) {
-    res.status(404).json({ error: "User not found" });
-    return;
-  }
-  req.session.userId = user.id;
-  const { passwordHash, ...safe } = user;
-  res.json(safe);
-});
+// POST /api/auth/demo/:userId — quick demo sign-in (dev only, no password)
+if (process.env.NODE_ENV !== "production") {
+  router.post("/demo/:userId", (req, res) => {
+    const user = db.users.find(req.params.userId);
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    req.session.userId = user.id;
+    const { passwordHash, ...safe } = user;
+    res.json(safe);
+  });
+}
 
 export default router;

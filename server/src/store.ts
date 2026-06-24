@@ -2,7 +2,7 @@
 // Same `db` export shape as the old in-memory store — route files don't change.
 
 import Database from "better-sqlite3";
-import { createHash } from "node:crypto";
+import bcrypt from "bcrypt";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,8 +24,14 @@ const sqlite = new Database(DB_PATH);
 sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 
+const BCRYPT_ROUNDS = 12;
+
 export function hashPassword(plain: string): string {
-  return createHash("sha256").update(plain).digest("hex");
+  return bcrypt.hashSync(plain, BCRYPT_ROUNDS);
+}
+
+export function verifyPassword(plain: string, hash: string): boolean {
+  return bcrypt.compareSync(plain, hash);
 }
 
 // ─── Schema ─────────────────────────────────────
@@ -203,6 +209,20 @@ sqlite.exec(`
     quote TEXT NOT NULL,
     avatar TEXT NOT NULL
   );
+
+  -- ─── Indexes ────────────────────────────────────
+  CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+  CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
+  CREATE INDEX IF NOT EXISTS idx_leads_ownerId ON leads(ownerId);
+  CREATE INDEX IF NOT EXISTS idx_leads_stage ON leads(stage);
+  CREATE INDEX IF NOT EXISTS idx_memberships_userId ON memberships(userId);
+  CREATE INDEX IF NOT EXISTS idx_memberships_status ON memberships(status);
+  CREATE INDEX IF NOT EXISTS idx_invoices_userId ON invoices(userId);
+  CREATE INDEX IF NOT EXISTS idx_bookings_userId ON bookings(userId);
+  CREATE INDEX IF NOT EXISTS idx_visitors_hostUserId ON visitors(hostUserId);
+  CREATE INDEX IF NOT EXISTS idx_lead_activities_leadId ON lead_activities(leadId);
+  CREATE INDEX IF NOT EXISTS idx_tasks_assigneeId ON tasks(assigneeId);
 `);
 
 // ─── Helpers ────────────────────────────────────

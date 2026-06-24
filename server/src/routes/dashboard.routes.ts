@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../auth.js";
 import { db } from "../store.js";
+import { validate, leadPatchSchema, taskPatchSchema } from "../validation.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -51,7 +52,7 @@ router.get("/leads/:id", (req, res) => {
   });
 });
 
-router.patch("/leads/:id", (req, res) => {
+router.patch("/leads/:id", validate(leadPatchSchema), (req, res) => {
   const lead = db.leads.update(req.params.id, req.body);
   if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
   res.json(lead);
@@ -70,7 +71,7 @@ router.get("/tasks", (req, res) => {
   }
 });
 
-router.patch("/tasks/:id", (req, res) => {
+router.patch("/tasks/:id", validate(taskPatchSchema), (req, res) => {
   const task = db.tasks.update(req.params.id, req.body);
   if (!task) { res.status(404).json({ error: "Task not found" }); return; }
   res.json(task);
