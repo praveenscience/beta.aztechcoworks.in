@@ -1,84 +1,321 @@
 <?php
 declare(strict_types=1);
 
-namespace Aztech\MockServer;
+namespace Aztech;
+
+use PDO;
 
 final class Db
 {
-    private string $path;
-    /** @var array<string, mixed> */
-    private array $data;
+    public PDO $pdo;
 
     public function __construct(?string $path = null)
     {
-        $this->path = $path ?? __DIR__ . '/../data/db.json';
-        if (!is_dir(dirname($this->path))) {
-            mkdir(dirname($this->path), 0775, true);
+        $path = $path ?? __DIR__ . '/../data/aztech.db';
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
         }
-        if (!is_file($this->path)) {
-            $this->data = self::seed();
-            $this->persist();
-        } else {
-            $raw = file_get_contents($this->path) ?: '{}';
-            $decoded = json_decode($raw, true);
-            $this->data = is_array($decoded) ? $decoded : self::seed();
+
+        $this->pdo = new PDO("sqlite:$path", null, null, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+        $this->pdo->exec('PRAGMA journal_mode = WAL');
+        $this->pdo->exec('PRAGMA foreign_keys = ON');
+
+        $this->createSchema();
+        $this->seedIfEmpty();
+    }
+
+    // ─── Schema ─────────────────────────────────
+
+    private function createSchema(): void
+    {
+        $this->pdo->exec("
+            CREATE TABLE IF NOT EXISTS branches (
+                id TEXT PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
+                address TEXT NOT NULL, city TEXT NOT NULL, phone TEXT NOT NULL,
+                hours TEXT NOT NULL, amenities TEXT NOT NULL DEFAULT '[]',
+                totalSeats INTEGER NOT NULL, availableSeats INTEGER NOT NULL,
+                isActive INTEGER NOT NULL DEFAULT 1, photo TEXT NOT NULL, description TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS seat_inventory (
+                branchId TEXT NOT NULL REFERENCES branches(id), type TEXT NOT NULL,
+                total INTEGER NOT NULL, available INTEGER NOT NULL, monthlyPrice INTEGER NOT NULL,
+                PRIMARY KEY (branchId, type)
+            );
+            CREATE TABLE IF NOT EXISTS meeting_rooms (
+                id TEXT PRIMARY KEY, branchId TEXT NOT NULL REFERENCES branches(id),
+                name TEXT NOT NULL, capacity INTEGER NOT NULL, hourlyPrice INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS plans (
+                id TEXT PRIMARY KEY, name TEXT NOT NULL, seatType TEXT NOT NULL,
+                basePrice INTEGER NOT NULL, gstRate INTEGER NOT NULL,
+                description TEXT NOT NULL, features TEXT NOT NULL DEFAULT '[]'
+            );
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT UNIQUE NOT NULL,
+                phone TEXT, company TEXT, role TEXT NOT NULL, branchId TEXT,
+                referralCode TEXT NOT NULL, passwordHash TEXT NOT NULL, createdAt TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS leads (
+                id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'website', branchId TEXT, planId TEXT,
+                teamSize INTEGER, budget INTEGER, timeline TEXT, message TEXT,
+                score INTEGER NOT NULL DEFAULT 0, stage TEXT NOT NULL DEFAULT 'new',
+                ownerId TEXT, customFields TEXT, createdAt TEXT NOT NULL, lostReason TEXT
+            );
+            CREATE TABLE IF NOT EXISTS lead_activities (
+                id TEXT PRIMARY KEY, leadId TEXT NOT NULL REFERENCES leads(id),
+                type TEXT NOT NULL, description TEXT NOT NULL, actorId TEXT, createdAt TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS tasks (
+                id TEXT PRIMARY KEY, leadId TEXT, assigneeId TEXT NOT NULL,
+                title TEXT NOT NULL, dueAt TEXT NOT NULL, done INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS site_visits (
+                id TEXT PRIMARY KEY, leadId TEXT NOT NULL REFERENCES leads(id),
+                branchId TEXT NOT NULL, scheduledAt TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'scheduled', mode TEXT NOT NULL DEFAULT 'self_serve'
+            );
+            CREATE TABLE IF NOT EXISTS memberships (
+                id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id),
+                planId TEXT NOT NULL, branchId TEXT NOT NULL, seats INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending', startDate TEXT NOT NULL, endDate TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS bookings (
+                id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id),
+                branchId TEXT NOT NULL, resourceType TEXT NOT NULL, resourceId TEXT NOT NULL,
+                startAt TEXT NOT NULL, endAt TEXT NOT NULL, amount INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'confirmed'
+            );
+            CREATE TABLE IF NOT EXISTS invoices (
+                id TEXT PRIMARY KEY, number TEXT UNIQUE NOT NULL,
+                userId TEXT NOT NULL REFERENCES users(id), bookingId TEXT, membershipId TEXT,
+                subtotal INTEGER NOT NULL, gst INTEGER NOT NULL, total INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending', issuedAt TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS visitors (
+                id TEXT PRIMARY KEY, hostUserId TEXT NOT NULL REFERENCES users(id),
+                branchId TEXT NOT NULL, name TEXT NOT NULL, phone TEXT NOT NULL,
+                purpose TEXT NOT NULL, qrToken TEXT NOT NULL, expectedAt TEXT NOT NULL,
+                checkedInAt TEXT, checkedOutAt TEXT
+            );
+            CREATE TABLE IF NOT EXISTS blog (
+                id TEXT PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
+                excerpt TEXT NOT NULL, body TEXT NOT NULL, cover TEXT NOT NULL,
+                publishedAt TEXT NOT NULL, author TEXT NOT NULL, tags TEXT NOT NULL DEFAULT '[]'
+            );
+            CREATE TABLE IF NOT EXISTS testimonials (
+                id TEXT PRIMARY KEY, name TEXT NOT NULL, company TEXT NOT NULL,
+                role TEXT NOT NULL, quote TEXT NOT NULL, avatar TEXT NOT NULL
+            );
+        ");
+    }
+
+    // ─── Seed ───────────────────────────────────
+
+    private function seedIfEmpty(): void
+    {
+        $count = (int) $this->pdo->query("SELECT COUNT(*) FROM branches")->fetchColumn();
+        if ($count > 0) return;
+
+        $now = gmdate('c');
+        $pw = hash('sha256', 'demo1234');
+
+        $this->pdo->beginTransaction();
+
+        $branchAreas = [
+            ['br_rs', 'rs-puram', 'Aztech R.S. Puram', 'R.S. Puram', 'photo-1497366216548-37526070297c', 240, 80],
+            ['br_pn', 'peelamedu', 'Aztech Peelamedu', 'Peelamedu', 'photo-1497366754035-f200968a6e72', 240, 75],
+            ['br_ga', 'gandhipuram', 'Aztech Gandhipuram', 'Gandhipuram', 'photo-1556761175-5973dc0f32e7', 240, 90],
+            ['br_sg', 'saravanampatti', 'Aztech Saravanampatti', 'Saravanampatti (IT Corridor)', 'photo-1604328698692-f76ea9498e76', 240, 85],
+            ['br_av', 'avinashi-road', 'Aztech Avinashi Road', 'Avinashi Road', 'photo-1568992687947-868a62a9f521', 240, 70],
+        ];
+
+        $amenities = json_encode(["High-speed Wi-Fi (1 Gbps)","Power backup","Cafeteria","Premium coffee","Meeting rooms","24/7 access","Reception & mail handling","Printing & scanning","Phone booths","Lockers"]);
+
+        $brStmt = $this->pdo->prepare("INSERT INTO branches (id,slug,name,address,city,phone,hours,amenities,totalSeats,availableSeats,isActive,photo,description) VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)");
+        $siStmt = $this->pdo->prepare("INSERT INTO seat_inventory (branchId,type,total,available,monthlyPrice) VALUES (?,?,?,?,?)");
+        $mrStmt = $this->pdo->prepare("INSERT INTO meeting_rooms (id,branchId,name,capacity,hourlyPrice) VALUES (?,?,?,?,?)");
+
+        foreach ($branchAreas as $i => [$id, $slug, $name, $area, $photo, $total, $avail]) {
+            $brStmt->execute([$id, $slug, $name, "$area, Coimbatore, Tamil Nadu", 'Coimbatore', '+91 90000 00000', 'Mon–Sat · 8:00 AM – 10:00 PM', $amenities, $total, $avail, $photo, "A premium Aztech Co-Works branch in $area designed for focused work, collaboration, and growth."]);
+
+            $siStmt->execute([$id, 'hot_desk', 80, 30, 6500]);
+            $siStmt->execute([$id, 'dedicated', 90, 25, 8500]);
+            $siStmt->execute([$id, 'cabin', 40, 15, 18000]);
+            $siStmt->execute([$id, 'team_office', 30, 10, 45000]);
+
+            $mrStmt->execute(["mr_{$i}_a", $id, 'Boardroom A', 12, 800]);
+            $mrStmt->execute(["mr_{$i}_b", $id, 'Huddle Room', 4, 400]);
+            $mrStmt->execute(["mr_{$i}_c", $id, 'Conference Hall', 24, 1500]);
         }
+
+        $plStmt = $this->pdo->prepare("INSERT INTO plans (id,name,seatType,basePrice,gstRate,description,features) VALUES (?,?,?,?,?,?,?)");
+        $plStmt->execute(['pl_hot', 'Hot Desk', 'hot_desk', 6500, 18, 'Flexible desks, any branch, available daily.', json_encode(["Any open desk","All amenities","Meeting room credits (4 hrs/mo)","Community access"])]);
+        $plStmt->execute(['pl_ded', 'Dedicated Desk', 'dedicated', 8500, 18, 'Your own desk, 24/7 access, locker included.', json_encode(["Reserved desk","24/7 access","Lockable storage","Meeting room credits (8 hrs/mo)"])]);
+        $plStmt->execute(['pl_cab', 'Private Cabin', 'cabin', 18000, 18, 'Lockable private cabin for individuals or pairs.', json_encode(["Lockable cabin","2 desks","Premium chairs","Meeting room credits (16 hrs/mo)"])]);
+        $plStmt->execute(['pl_team', 'Team Office', 'team_office', 45000, 18, 'Private office for 4–20 person teams. Fully managed.', json_encode(["Custom build-out","Dedicated reception","Unlimited meeting rooms","Enterprise SLAs"])]);
+
+        $uStmt = $this->pdo->prepare("INSERT INTO users (id,name,email,phone,company,role,branchId,referralCode,passwordHash,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)");
+        $uStmt->execute(['u_super', 'Aarav Kumar', 'admin@aztechcoworks.in', '+91 90000 11111', null, 'super_admin', null, 'AARAV-VIP', $pw, $now]);
+        $uStmt->execute(['u_sales', 'Divya Iyer', 'sales@aztechcoworks.in', null, null, 'sales_exec', null, 'DIVYA-100', $pw, $now]);
+        $uStmt->execute(['u_smgr', 'Rohit Pillai', 'salesmgr@aztechcoworks.in', null, null, 'sales_manager', null, 'ROHIT-200', $pw, $now]);
+        $uStmt->execute(['u_rec', 'Meera Sundar', 'reception@aztechcoworks.in', null, null, 'reception', 'br_rs', 'MEERA-300', $pw, $now]);
+        $uStmt->execute(['u_brm', 'Karthik Raja', 'branchmgr@aztechcoworks.in', null, null, 'branch_manager', 'br_rs', 'KARTHIK-400', $pw, $now]);
+        $uStmt->execute(['u_fin', 'Sneha Nair', 'finance@aztechcoworks.in', null, null, 'finance', null, 'SNEHA-500', $pw, $now]);
+        $uStmt->execute(['u_mkt', 'Vikram Joshi', 'marketing@aztechcoworks.in', null, null, 'marketing', null, 'VIKRAM-600', $pw, $now]);
+        $uStmt->execute(['u_member', 'Anjali Menon', 'anjali@cibylstudios.com', '+91 98765 43210', 'Cibyl Studios', 'member', 'br_pn', 'ANJALI-CW', $pw, $now]);
+
+        $ldStmt = $this->pdo->prepare("INSERT INTO leads (id,name,email,phone,source,branchId,planId,teamSize,budget,timeline,message,score,stage,ownerId,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        $ldStmt->execute(['ld1','Suresh Babu','suresh@orangefin.in','+91 99887 76655','website','br_sg','pl_team',12,60000,'1_month','Looking for a team office for our fintech.',86,'qualified','u_sales',$now]);
+        $ldStmt->execute(['ld2','Priya Ramesh','priya@studiokin.co','+91 90000 23456','website','br_rs','pl_ded',3,25000,'immediate',null,78,'site_visit','u_sales',$now]);
+        $ldStmt->execute(['ld3','Manoj K','manoj@indigocode.dev','+91 90000 99887','whatsapp','br_pn','pl_hot',1,7000,'immediate',null,64,'new',null,$now]);
+
+        $tkStmt = $this->pdo->prepare("INSERT INTO tasks (id,leadId,assigneeId,title,dueAt,done) VALUES (?,?,?,?,?,0)");
+        $tkStmt->execute(['tk1','ld1','u_sales','Send proposal to Suresh', gmdate('c', time()+86400)]);
+        $tkStmt->execute(['tk2','ld2','u_sales','Confirm site visit slot', gmdate('c', time()+14400)]);
+
+        $this->pdo->prepare("INSERT INTO site_visits (id,leadId,branchId,scheduledAt,status,mode) VALUES (?,?,?,?,?,?)")
+            ->execute(['sv1','ld2','br_rs', gmdate('c', time()+86400), 'scheduled', 'self_serve']);
+
+        $this->pdo->prepare("INSERT INTO memberships (id,userId,planId,branchId,seats,status,startDate,endDate) VALUES (?,?,?,?,?,?,?,?)")
+            ->execute(['mb1','u_member','pl_ded','br_pn',1,'active','2026-01-15','2026-07-15']);
+
+        $invStmt = $this->pdo->prepare("INSERT INTO invoices (id,number,userId,membershipId,subtotal,gst,total,status,issuedAt) VALUES (?,?,?,?,?,?,?,?,?)");
+        $invStmt->execute(['inv1','AZTECH-2026-0001','u_member','mb1',8500,1530,10030,'paid','2026-06-01']);
+        $invStmt->execute(['inv2','AZTECH-2026-0002','u_member','mb1',8500,1530,10030,'paid','2026-05-01']);
+
+        $bpStmt = $this->pdo->prepare("INSERT INTO blog (id,slug,title,excerpt,body,cover,publishedAt,author,tags) VALUES (?,?,?,?,?,?,?,?,?)");
+        $bpStmt->execute(['bp1','best-coworking-space-in-coimbatore','The Best Coworking Space in Coimbatore (2026 Guide)','A founder\'s guide to picking a workspace in Coimbatore.','Coimbatore\'s tech corridor has exploded over the last 36 months...','photo-1497366216548-37526070297c','2026-05-22','Aztech Editorial',json_encode(['coimbatore','coworking','guide'])]);
+        $bpStmt->execute(['bp2','office-space-vs-coworking','Office Space vs Coworking: What\'s right for your startup?','A break-even calculation, plus the soft factors most founders miss.','When you cross 8 people, the math changes...','photo-1604328698692-f76ea9498e76','2026-05-08','Aztech Editorial',json_encode(['startups','decisions'])]);
+        $bpStmt->execute(['bp3','startup-workspace-guide','The Startup Workspace Guide','How your workspace needs change as you grow.','Every stage has different workspace needs...','photo-1568992687947-868a62a9f521','2026-04-19','Aztech Editorial',json_encode(['startups','growth'])]);
+
+        $tStmt = $this->pdo->prepare("INSERT INTO testimonials (id,name,company,role,quote,avatar) VALUES (?,?,?,?,?,?)");
+        $tStmt->execute(['t1','Karthik Subramaniam','Loop Analytics','Founder & CEO','Aztech let us scale from 3 to 22 people without ever moving offices.','photo-1500648767791-00dcc994a43e']);
+        $tStmt->execute(['t2','Anjali Menon','Cibyl Studios','Design Lead','The community is real. We\'ve hired two engineers from coffee chats in the lounge.','photo-1438761681033-6461ffad8d80']);
+        $tStmt->execute(['t3','Vignesh Raghavan','Northwind Labs','CTO','Best workspace in Coimbatore, hands down.','photo-1472099645785-5658abf4ff4e']);
+
+        $this->pdo->commit();
     }
 
-    /** @return array<int, array<string, mixed>> */
-    public function table(string $name): array
+    // ─── Query helpers ──────────────────────────
+
+    public function uid(string $prefix): string
     {
-        return $this->data[$name] ?? [];
+        return $prefix . '_' . bin2hex(random_bytes(4));
     }
 
-    /** @param array<int, array<string, mixed>> $rows */
-    public function setTable(string $name, array $rows): void
+    public function hashPassword(string $plain): string
     {
-        $this->data[$name] = array_values($rows);
-        $this->persist();
+        return hash('sha256', $plain);
     }
 
-    public function insert(string $name, array $row): array
+    /** @return list<array<string,mixed>> */
+    public function all(string $table): array
     {
-        $rows = $this->table($name);
-        $rows[] = $row;
-        $this->setTable($name, $rows);
+        return $this->decodeRows($table, $this->pdo->query("SELECT * FROM $table")->fetchAll());
+    }
+
+    /** @return ?array<string,mixed> */
+    public function find(string $table, string $id): ?array
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM $table WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        return $row ? $this->decodeRow($table, $row) : null;
+    }
+
+    /** @return ?array<string,mixed> */
+    public function findBy(string $table, string $col, string $val): ?array
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM $table WHERE $col = ?");
+        $stmt->execute([$val]);
+        $row = $stmt->fetch();
+        return $row ? $this->decodeRow($table, $row) : null;
+    }
+
+    /** @return list<array<string,mixed>> */
+    public function where(string $table, string $col, string $val): array
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM $table WHERE $col = ?");
+        $stmt->execute([$val]);
+        return $this->decodeRows($table, $stmt->fetchAll());
+    }
+
+    /** @param array<string,mixed> $data */
+    public function insert(string $table, array $data): void
+    {
+        $data = $this->encodeRow($table, $data);
+        $cols = implode(',', array_keys($data));
+        $placeholders = implode(',', array_fill(0, count($data), '?'));
+        $stmt = $this->pdo->prepare("INSERT INTO $table ($cols) VALUES ($placeholders)");
+        $stmt->execute(array_values($data));
+    }
+
+    /** @param array<string,mixed> $patch */
+    public function update(string $table, string $id, array $patch): void
+    {
+        unset($patch['id']);
+        if (empty($patch)) return;
+        $patch = $this->encodeRow($table, $patch);
+        $sets = implode(', ', array_map(fn($k) => "$k = ?", array_keys($patch)));
+        $stmt = $this->pdo->prepare("UPDATE $table SET $sets WHERE id = ?");
+        $stmt->execute([...array_values($patch), $id]);
+    }
+
+    // ─── JSON & boolean encoding ────────────────
+
+    private const JSON_COLS = [
+        'amenities' => true, 'features' => true, 'tags' => true, 'customFields' => true,
+    ];
+
+    private const BOOL_COLS = ['isActive' => true, 'done' => true];
+
+    /** @param array<string,mixed> $row */
+    private function decodeRow(string $table, array $row): array
+    {
+        foreach (self::JSON_COLS as $col => $_) {
+            if (isset($row[$col]) && is_string($row[$col])) {
+                $row[$col] = json_decode($row[$col], true) ?? $row[$col];
+            }
+        }
+        foreach (self::BOOL_COLS as $col => $_) {
+            if (array_key_exists($col, $row)) {
+                $row[$col] = (bool) $row[$col];
+            }
+        }
         return $row;
     }
 
-    private function persist(): void
+    /** @param list<array<string,mixed>> $rows */
+    private function decodeRows(string $table, array $rows): array
     {
-        file_put_contents(
-            $this->path,
-            json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-            LOCK_EX,
-        );
+        return array_map(fn($r) => $this->decodeRow($table, $r), $rows);
     }
 
-    /** @return array<string, array<int, array<string, mixed>>> */
-    private static function seed(): array
+    /** @param array<string,mixed> $row */
+    private function encodeRow(string $table, array $row): array
     {
-        $now = date(DATE_ATOM);
-        return [
-            'branches' => [
-                ['id' => 'br_rs_puram', 'slug' => 'rs-puram', 'name' => 'Aztech RS Puram',  'city' => 'Coimbatore', 'address' => '12 DB Road, RS Puram', 'seats' => 80,  'isActive' => true, 'createdAt' => $now],
-                ['id' => 'br_peelamedu', 'slug' => 'peelamedu', 'name' => 'Aztech Peelamedu', 'city' => 'Coimbatore', 'address' => 'Avinashi Rd, Peelamedu', 'seats' => 120, 'isActive' => true, 'createdAt' => $now],
-                ['id' => 'br_saibaba',  'slug' => 'saibaba-colony', 'name' => 'Aztech Saibaba Colony', 'city' => 'Coimbatore', 'address' => 'NSR Rd, Saibaba Colony', 'seats' => 60, 'isActive' => true, 'createdAt' => $now],
-                ['id' => 'br_race_course', 'slug' => 'race-course', 'name' => 'Aztech Race Course', 'city' => 'Coimbatore', 'address' => 'Race Course Rd', 'seats' => 100, 'isActive' => true, 'createdAt' => $now],
-                ['id' => 'br_gandhipuram', 'slug' => 'gandhipuram', 'name' => 'Aztech Gandhipuram', 'city' => 'Coimbatore', 'address' => '100ft Rd, Gandhipuram', 'seats' => 90, 'isActive' => true, 'createdAt' => $now],
-            ],
-            'plans' => [
-                ['id' => 'pl_daypass',   'name' => 'Day Pass',          'seatType' => 'hotdesk',   'basePrice' => 499,  'gstPercent' => 18, 'features' => ['High-speed Wi-Fi', 'Coffee/Tea', '1 day access']],
-                ['id' => 'pl_hotdesk',   'name' => 'Hot Desk Monthly',  'seatType' => 'hotdesk',   'basePrice' => 6999, 'gstPercent' => 18, 'features' => ['Any seat', 'Locker', 'Meeting room credits']],
-                ['id' => 'pl_dedicated', 'name' => 'Dedicated Desk',    'seatType' => 'dedicated', 'basePrice' => 9999, 'gstPercent' => 18, 'features' => ['Reserved desk', '24x7 access', 'Meeting room credits']],
-                ['id' => 'pl_cabin4',    'name' => 'Private Cabin (4)', 'seatType' => 'cabin',     'basePrice' => 34999,'gstPercent' => 18, 'features' => ['4-seat cabin', 'Branded signage', '24x7 access']],
-                ['id' => 'pl_virtual',   'name' => 'Virtual Office',    'seatType' => 'virtual',   'basePrice' => 1999, 'gstPercent' => 18, 'features' => ['Business address', 'Mail handling', 'GST registration support']],
-            ],
-            'leads' => [
-                ['id' => 'ld_1', 'name' => 'Karthik R',  'email' => 'karthik@example.com',  'phone' => '+91 90000 11111', 'source' => 'website', 'score' => 72, 'createdAt' => $now],
-                ['id' => 'ld_2', 'name' => 'Divya S',    'email' => 'divya@example.com',    'phone' => '+91 90000 22222', 'source' => 'referral','score' => 88, 'createdAt' => $now],
-                ['id' => 'ld_3', 'name' => 'Vignesh M',  'email' => 'vignesh@example.com',  'phone' => '+91 90000 33333', 'source' => 'walk-in', 'score' => 41, 'createdAt' => $now],
-            ],
-        ];
+        foreach (self::JSON_COLS as $col => $_) {
+            if (isset($row[$col]) && is_array($row[$col])) {
+                $row[$col] = json_encode($row[$col], JSON_UNESCAPED_SLASHES);
+            }
+        }
+        foreach (self::BOOL_COLS as $col => $_) {
+            if (array_key_exists($col, $row)) {
+                $row[$col] = $row[$col] ? 1 : 0;
+            }
+        }
+        return $row;
+    }
+
+    /** Strip passwordHash from user row */
+    public function safeUser(array $user): array
+    {
+        unset($user['passwordHash']);
+        return $user;
     }
 }

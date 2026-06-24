@@ -1,5 +1,5 @@
 <?php
-// Front controller for `php -S 127.0.0.1:3001 router.php`
+// Apache / cPanel entry point (via .htaccess rewrite)
 declare(strict_types=1);
 
 require __DIR__ . '/src/bootstrap.php';

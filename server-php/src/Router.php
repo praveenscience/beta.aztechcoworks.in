@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Aztech\MockServer;
+namespace Aztech;
 
 final class Router
 {
@@ -18,6 +18,11 @@ final class Router
         $this->routes[] = ['method' => 'POST', 'pattern' => $pattern, 'handler' => $handler];
     }
 
+    public function patch(string $pattern, callable $handler): void
+    {
+        $this->routes[] = ['method' => 'PATCH', 'pattern' => $pattern, 'handler' => $handler];
+    }
+
     public function dispatch(string $method, string $path): void
     {
         foreach ($this->routes as $route) {
@@ -28,17 +33,19 @@ final class Router
             if (preg_match($regex, $path, $matches)) {
                 $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
                 $result = ($route['handler'])($params);
-                $this->respond($result);
+                if ($result !== null) {
+                    $this->json($result);
+                }
                 return;
             }
         }
-        $this->respond(['error' => 'Not Found'], 404);
+        $this->json(['error' => 'Not Found'], 404);
     }
 
-    public function respond(mixed $payload, int $status = 200): void
+    public function json(mixed $payload, int $status = 200): void
     {
         http_response_code($status);
         header('Content-Type: application/json');
-        echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 }
