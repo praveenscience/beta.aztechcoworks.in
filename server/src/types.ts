@@ -12,7 +12,7 @@ export type Role =
   | "marketing"
   | "super_admin";
 
-export type SeatType = "hot_desk" | "dedicated" | "cabin" | "team_office";
+export type SeatType = "hot_desk" | "dedicated" | "cabin" | "team_office" | "enterprise";
 export type LeadStage = "new" | "contacted" | "qualified" | "site_visit" | "proposal" | "negotiation" | "won" | "lost";
 export type LeadSource = "website" | "whatsapp" | "walk_in" | "referral" | "corporate";
 export type LeadTimeline = "immediate" | "1_month" | "3_months" | "exploring";

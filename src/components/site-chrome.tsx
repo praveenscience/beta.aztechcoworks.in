@@ -124,7 +124,7 @@ export function SiteFooter() {
             Aztech Co-Works
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            Coimbatore's premium coworking & managed office network. 5 branches, 1,200 seats.
+            Coimbatore's premium coworking & managed office network. 6 branches, 1,200+ seats.
           </p>
         </div>
         <FooterCol
@@ -146,9 +146,9 @@ export function SiteFooter() {
         <div>
           <div className="text-sm font-semibold">Get in touch</div>
           <p className="mt-3 text-sm text-muted-foreground">
-            R.S. Puram, Coimbatore<br />
-            Tamil Nadu — 641002<br />
-            <a className="text-foreground hover:text-accent" href="tel:+919000000000">+91 90000 00000</a><br />
+            Brookfields Mall, R.S. Puram<br />
+            Coimbatore, Tamil Nadu — 641001<br />
+            <a className="text-foreground hover:text-accent" href="tel:+918310696307">+91 83106 96307</a><br />
             <a className="text-foreground hover:text-accent" href="mailto:hello@aztechcoworks.in">hello@aztechcoworks.in</a>
           </p>
         </div>

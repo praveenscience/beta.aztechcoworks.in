@@ -8,14 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateLead, useBranches } from "@/lib/queries";
-import { Building2, Rocket, Users, ShieldCheck } from "lucide-react";
+import { Building2, Rocket, Users, ShieldCheck, Monitor, BarChart3, MessageSquare, Target } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_public/corporate")({
   head: () => ({
     meta: [
       { title: "Corporate Workspace Solutions in Coimbatore | Aztech Co-Works" },
-      { name: "description", content: "Managed offices, team workspaces, and enterprise-grade SLAs for IT companies, startups, agencies, and remote teams." },
+      { name: "description", content: "Managed offices for 30–150+ seats, enterprise admin portals, and zero-brokerage workspace solutions for IT companies, startups, agencies, and remote teams across 6 Coimbatore branches." },
     ],
   }),
   component: CorporatePage,
@@ -63,13 +63,13 @@ function CorporatePage() {
         <section className="bg-hero py-20 text-white">
           <div className="container mx-auto grid gap-10 px-4 md:grid-cols-2 md:px-6 md:items-center">
             <div>
-              <Badge className="border-white/20 bg-white/10 text-white">For teams of 10–200</Badge>
+              <Badge className="border-white/20 bg-white/10 text-white">For teams of 10–150+</Badge>
               <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
-                Managed offices for teams that move fast.
+                Managed enterprise floors. Zero brokerage.
               </h1>
               <p className="mt-4 max-w-xl text-white/75">
-                Move-in ready in 30 days. Custom build-outs. Dedicated reception. Enterprise-grade SLAs.
-                Pay one bill — we handle everything else.
+                Move-in ready in 30 days. Custom build-outs across 6 branches. Dedicated reception.
+                Enterprise-grade SLAs. One invoice — we handle everything else.
               </p>
               <div className="mt-8 grid max-w-md grid-cols-2 gap-4 text-sm">
                 <Pillar icon={Building2} title="Custom build-outs" />
@@ -123,6 +123,17 @@ function CorporatePage() {
         </section>
 
         <section className="container mx-auto px-4 py-16 md:px-6">
+          <h2 className="text-3xl font-bold tracking-tight">The Aztech Enterprise Platform</h2>
+          <p className="mt-2 text-muted-foreground">Four pillars that power workspace operations at scale.</p>
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <PlatformPillar icon={Monitor} title="Self-Serve B2C Ecosystem" description="Members browse branches, pick plans, book visits, and manage memberships — all without staff intervention." />
+            <PlatformPillar icon={BarChart3} title="Enterprise Admin Portal" description="White-labeled dashboards, hybrid workforce tracking, audit-ready compliance, and multi-branch analytics for 30–150+ seat teams." />
+            <PlatformPillar icon={MessageSquare} title="Community Management" description="Member directories, event boards, referral programs, and lounge-to-Slack integrations that build real community." />
+            <PlatformPillar icon={Target} title="Lead-to-Lease Engine" description="Kanban sales pipeline, automated follow-ups, site visit scheduling, and proposal generation — from first enquiry to signed contract." />
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16 md:px-6">
           <h2 className="text-3xl font-bold tracking-tight">Trusted by teams across India</h2>
           <p className="mt-2 text-muted-foreground">From seed-stage startups to public companies.</p>
           <div className="mt-8 grid gap-4 md:grid-cols-4">
@@ -146,5 +157,19 @@ function Pillar({ icon: Icon, title }: { icon: typeof Building2; title: string }
       <Icon className="h-4 w-4 text-accent" />
       <span className="text-sm">{title}</span>
     </div>
+  );
+}
+
+function PlatformPillar({ icon: Icon, title, description }: { icon: typeof Building2; title: string; description: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
+          <Icon className="h-5 w-5 text-accent" />
+        </div>
+        <CardTitle className="text-base">{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+    </Card>
   );
 }

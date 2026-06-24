@@ -28,6 +28,7 @@ export const seatTypeLabels: Record<SeatType, string> = {
   dedicated: "Dedicated Desk",
   cabin: "Private Cabin",
   team_office: "Team Office",
+  enterprise: "Managed Enterprise Floor",
 };
 
 const inrFormatter = new Intl.NumberFormat("en-IN", {
@@ -44,6 +45,6 @@ export function unsplash(id: string, w = 1200, h = 800) {
   return `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=80`;
 }
 
-export function whatsappLink(message: string, phone = "919000000000") {
+export function whatsappLink(message: string, phone = "918310696307") {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }

@@ -25,16 +25,16 @@ import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 export const Route = createFileRoute("/_public/")({
   head: () => ({
     meta: [
-      { title: "Aztech Co-Works — Coworking & Managed Offices in Coimbatore" },
+      { title: "Aztech Co-Works — Coworking, Enterprise Workspaces & Managed Offices in Coimbatore" },
       {
         name: "description",
         content:
-          "5 branches across Coimbatore. 1,200 seats. Hot desks, dedicated desks, private cabins, team offices. Book a site visit instantly.",
+          "6 branches across Coimbatore. 1,200+ seats. Hot desks, dedicated desks, private cabins, team offices. Book a site visit instantly.",
       },
-      { property: "og:title", content: "Aztech Co-Works — Coimbatore's premium workspace network" },
+      { property: "og:title", content: "Aztech Co-Works — Coworking, Enterprise Workspaces & Managed Offices in Coimbatore" },
       {
         property: "og:description",
-        content: "5 branches, 1,200 seats, built for founders, freelancers, and growing teams.",
+        content: "6 branches, 1,200+ seats, built for founders, freelancers, and growing teams.",
       },
     ],
   }),
@@ -71,7 +71,7 @@ function Home() {
                 as you do.
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75">
-                Five premium coworking branches across Coimbatore. {totalSeats.toLocaleString("en-IN")} seats,
+                Six premium coworking & enterprise branches across Coimbatore. {totalSeats.toLocaleString("en-IN")} seats,
                 fibre internet, meeting rooms, 24/7 access, and a real community of founders, freelancers, and
                 teams.
               </p>
@@ -89,7 +89,7 @@ function Home() {
                 >
                   <a
                     href={whatsappLink(
-                      "Hi Aztech! I'd like to know more about your coworking spaces in Coimbatore.",
+                      "Hi Aztech! I'd like to know more about your coworking & enterprise spaces in Coimbatore.",
                     )}
                     target="_blank"
                     rel="noreferrer"
@@ -99,7 +99,7 @@ function Home() {
                 </Button>
               </div>
               <div className="mt-10 grid max-w-md grid-cols-3 gap-4">
-                <AnimatedStat label="Branches" end={5} />
+                <AnimatedStat label="Branches" end={6} />
                 <AnimatedStat label="Total seats" end={totalSeats} format={(n) => n.toLocaleString("en-IN")} />
                 <AnimatedStat label="Avg. NPS" end={78} />
               </div>
@@ -161,7 +161,7 @@ function Home() {
         <section ref={branchesRef} className="container mx-auto px-4 py-16 opacity-0 md:px-6 md:py-24">
           <div className="flex items-end justify-between gap-6">
             <div>
-              <Badge variant="outline" className="mb-3">5 Branches in Coimbatore</Badge>
+              <Badge variant="outline" className="mb-3">6 Branches in Coimbatore</Badge>
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Find a branch near you</h2>
               <p className="mt-2 max-w-xl text-muted-foreground">
                 Live seat availability across every Aztech location.
@@ -347,10 +347,10 @@ function Home() {
               <div>
                 <Badge className="border-white/20 bg-white/10 text-white">For teams of 10–200</Badge>
                 <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-                  Need a managed office for your team?
+                  Need 30–150+ seats for your enterprise team?
                 </h2>
                 <p className="mt-3 max-w-xl text-white/75">
-                  Custom build-outs, dedicated reception, enterprise-grade SLAs. Move-in ready in 30 days.
+                  Custom build-outs, dedicated reception, enterprise SLAs, and zero brokerage. Move-in ready in 30 days.
                 </p>
               </div>
               <div className="flex flex-col gap-3 md:items-end">

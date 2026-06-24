@@ -39,7 +39,7 @@ function BlogPost() {
               The editorial system supports markdown, cover images, tags, and SEO metadata per post.
             </p>
             <h2>What's next</h2>
-            <p>Book a site visit at any of our 5 Coimbatore branches and feel the difference in 10 minutes.</p>
+            <p>Book a site visit at any of our 6 Coimbatore branches and feel the difference in 10 minutes.</p>
           </div>
         </article>
       </main>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_public/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — Aztech Co-Works Coimbatore" },
-      { name: "description", content: "Transparent monthly pricing for Hot Desks, Dedicated Desks, Private Cabins, Team Offices, and Meeting Rooms." },
+      { name: "description", content: "Transparent monthly pricing for Hot Desks, Dedicated Desks, Private Cabins, Team Offices, Managed Enterprise Floors, and Meeting Rooms." },
     ],
   }),
   component: PricingPage,
@@ -71,6 +71,24 @@ function PricingPage() {
             </Card>
           ))}
         </div>
+
+        <Card className="mt-16 border-accent/30 bg-accent/5">
+          <CardContent className="flex flex-col items-center gap-4 py-8 text-center md:flex-row md:text-left">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10">
+              <Building2 className="h-6 w-6 text-accent" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold">Need 30+ seats?</h3>
+              <p className="text-sm text-muted-foreground">
+                Managed enterprise floors with custom build-outs, white-labeled dashboards, and annual contracts.
+                Zero brokerage.
+              </p>
+            </div>
+            <Button asChild>
+              <Link to="/corporate">Get enterprise proposal <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            </Button>
+          </CardContent>
+        </Card>
 
         <Card ref={calcRef} className="mt-16 opacity-0">
           <CardHeader>

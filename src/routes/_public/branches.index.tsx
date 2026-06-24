@@ -10,8 +10,8 @@ import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 export const Route = createFileRoute("/_public/branches/")({
   head: () => ({
     meta: [
-      { title: "Branches — Aztech Co-Works (5 locations in Coimbatore)" },
-      { name: "description", content: "Find an Aztech Co-Works branch near you. R.S. Puram, Peelamedu, Gandhipuram, Saravanampatti, Avinashi Road." },
+      { title: "Branches — Aztech Co-Works (6 locations in Coimbatore)" },
+      { name: "description", content: "Find an Aztech Co-Works branch near you. Brookfields, RS Puram, RS Puram East, Ram Nagar, ATT Colony, Saibaba Colony." },
     ],
   }),
   component: BranchesPage,
@@ -23,7 +23,7 @@ function BranchesPage() {
   return (
       <main className="container mx-auto px-4 py-12 md:px-6 md:py-16">
         <div className="mb-10">
-          <Badge variant="outline" className="mb-3">5 branches</Badge>
+          <Badge variant="outline" className="mb-3">6 branches</Badge>
           <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Aztech across Coimbatore</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Premium workspaces in every key business district. Live availability across every branch.

@@ -1,42 +1,58 @@
 # Aztech Co-Works — Platform Update
 
-**Hey Syed, quick update on where we are:**
+**Hey Syed, here's where we are:**
 
-## The platform is live and working locally
+## The platform is live and working
 
-Here's what's done:
+### 1. Premium marketing website
+Home page, 6 branch pages, pricing with calculator, corporate enterprise page, blog, and "Book a Site Visit" — all polished, mobile-friendly, and production-ready. Works even without the backend connected (shows demo data with a small banner).
 
-### 1. Beautiful marketing website
-Home page, branches, pricing, corporate solutions, blog, and a "Book a Site Visit" page. All polished, mobile-friendly, and professional. Looks like a premium brand.
+### 2. 6 real branch locations
+All branches loaded with real addresses and contact info:
+- **Brookfields** (Flagship) — Dr Krishnasamy Mudaliyar Rd, above Kailash Parbat
+- **RS Puram** — 2nd Floor, Indsil House, E TV Swamy Road
+- **RS Puram East** — 2nd Floor, 161 L, E Ponnurangam Road (East)
+- **Ram Nagar** — Near Vivekananda Road (24/7 digital access)
+- **ATT Colony** — Aztech Elysium Towers
+- **Saibaba Colony** — Aztech Sanhasa Square
 
-### 2. Full backend server built
-We have our own backend system running. No dependency on any third-party service. All data stays with us. It's designed so we can plug in a real database whenever we're ready.
+### 3. 5 workspace plans
+- Hot Desk — Rs 6,500/mo
+- Dedicated Desk — Rs 8,500/mo
+- Private Cabin — Rs 18,000/mo
+- Team Office — Rs 45,000/mo
+- **Managed Enterprise Floor — Rs 1,50,000/mo** (NEW — for 30–150+ seat teams)
 
-### 3. 8 role-based dashboards
-Every role in your team has their own workspace:
-- **Members** see their bookings, invoices, membership, visitors, referrals
-- **Sales team** gets a full Kanban pipeline for leads
-- **Reception** can manage walk-ins and visitor check-in/out
-- **Branch manager** sees branch operations
-- **Finance** handles invoices and payments
-- **Marketing** manages blog, campaigns, leads
-- **Super admin** (you/me) sees everything
+### 4. Full backend with SQLite database
+Own backend server — no third-party dependency. Data persists across restarts using SQLite. Also built a PHP version ready for cPanel hosting.
 
-### 4. Authentication system
-Secure login/signup, session-based. Demo mode lets anyone explore all 8 roles instantly — great for showing investors or partners.
+### 5. 9 role-based dashboards
+Every role has their own workspace:
+- **Members** — bookings, invoices, membership, visitors, referrals
+- **Sales exec** — Kanban pipeline, lead management, WhatsApp integration
+- **Sales manager** — full pipeline across all reps, team management
+- **Reception** — visitor check-in/out, walk-in management
+- **Branch manager** — branch operations, seat occupancy
+- **Finance** — invoices, payments, GST reports
+- **Marketing** — blog, campaigns, lead sources
+- **Super admin** — everything across all branches
 
-### 5. Everything is connected
-The frontend talks to the backend through 25+ API endpoints. Real data flows, not mockups.
+### 6. Enterprise & B2B ready
+Corporate solutions page with 4 platform pillars, enterprise proposal form, and "Need 30+ seats?" CTA on pricing page. Zero brokerage messaging.
+
+### 7. Works offline
+Frontend works without backend — automatically switches to demo data with an amber "Backend not connected" banner. Perfect for demos and Cloudflare Pages deployment.
 
 ---
 
-## What's next (when you're ready)
-- Payment gateway (Razorpay) for online payments
-- Real WhatsApp Business API integration
-- Email notifications
-- Deploy to your hosting (cPanel ready)
-- Real branch data & photos from your locations
+## What's next
+- Deploy backend to your cPanel hosting
+- Razorpay payment gateway
+- WhatsApp Business API integration
+- Email notifications & reminders
+- Real branch photos & floor plans
+- Google Analytics & SEO optimization
 
 ---
 
-**Bottom line:** We have a working product. Not a design, not a mockup — a real system. We're weeks ahead of where most startups would be at this stage.
+**Bottom line:** We have a working product with real data, real enterprise features, and both Node.js + PHP backends ready to deploy. Not a mockup — a real system.

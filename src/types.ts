@@ -14,7 +14,7 @@ export type Role =
   | "marketing"
   | "super_admin";
 
-export type SeatType = "hot_desk" | "dedicated" | "cabin" | "team_office";
+export type SeatType = "hot_desk" | "dedicated" | "cabin" | "team_office" | "enterprise";
 
 export type LeadStage =
   | "new"

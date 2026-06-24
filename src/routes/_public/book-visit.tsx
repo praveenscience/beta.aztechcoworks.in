@@ -93,7 +93,7 @@ function BookVisit() {
         <Badge variant="outline" className="mb-3">Free · 30 minutes</Badge>
         <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Book a site visit</h1>
         <p className="mt-2 text-muted-foreground">
-          Tour any of our 5 Coimbatore branches. Bring your laptop — try the space for an hour.
+          Tour any of our 6 Coimbatore branches. Bring your laptop — try the space for an hour.
         </p>
 
         <Card className="mt-8">

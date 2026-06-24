@@ -126,12 +126,13 @@ final class Db
 
         $this->pdo->beginTransaction();
 
-        $branchAreas = [
-            ['br_rs', 'rs-puram', 'Aztech R.S. Puram', 'R.S. Puram', 'photo-1497366216548-37526070297c', 240, 80],
-            ['br_pn', 'peelamedu', 'Aztech Peelamedu', 'Peelamedu', 'photo-1497366754035-f200968a6e72', 240, 75],
-            ['br_ga', 'gandhipuram', 'Aztech Gandhipuram', 'Gandhipuram', 'photo-1556761175-5973dc0f32e7', 240, 90],
-            ['br_sg', 'saravanampatti', 'Aztech Saravanampatti', 'Saravanampatti (IT Corridor)', 'photo-1604328698692-f76ea9498e76', 240, 85],
-            ['br_av', 'avinashi-road', 'Aztech Avinashi Road', 'Avinashi Road', 'photo-1568992687947-868a62a9f521', 240, 70],
+        $branches = [
+            ['br_bk', 'brookfields', 'Aztech Brookfields', 'Dr Krishnasamy Mudaliyar Rd, Above Kailash Parbat, Brookefields, Sukrawar Pettai, R.S. Puram, Coimbatore, Tamil Nadu 641001', 'photo-1497366216548-37526070297c', 200, 60, 'The Aztech flagship at Brookfields Mall — large team operations, fully managed enterprise setups (20 to 150+ seaters), and premium corporate workstations.'],
+            ['br_rs', 'rs-puram', 'Aztech RS Puram', '2nd Floor, Indsil House, E TV Swamy Road, RS Puram, Coimbatore, Tamil Nadu 641002', 'photo-1497366754035-f200968a6e72', 200, 65, 'Premium enterprise wings, custom executive suites, private cabins, and day-pass coworking at the heart of RS Puram.'],
+            ['br_re', 'rs-puram-east', 'Aztech RS Puram East', '2nd Floor, 161 L, E Ponnurangam Road (East), RS Puram, Coimbatore, Tamil Nadu 641002', 'photo-1556761175-5973dc0f32e7', 200, 80, 'Ideal for freelancers, startups, back-office operations, training centers, and virtual office rentals.'],
+            ['br_rn', 'ram-nagar', 'Aztech Ram Nagar', 'Near Vivekananda Road, Ram Nagar, Coimbatore', 'photo-1604328698692-f76ea9498e76', 200, 75, '24/7 access hub with digital door codes — work on your schedule, any time of day or night.'],
+            ['br_at', 'att-colony', 'Aztech ATT Colony', 'Aztech Elysium Towers, ATT Colony, Coimbatore', 'photo-1568992687947-868a62a9f521', 200, 70, 'Modern tech-startup floors and corporate satellite offices in the vibrant ATT Colony neighborhood.'],
+            ['br_sb', 'saibaba-colony', 'Aztech Saibaba Colony', 'Aztech Sanhasa Square, Saibaba Colony, Coimbatore', 'photo-1555396273-367ea4eb4db5', 200, 65, 'High-density scale-up teams and private corporate cabins at Sanhasa Square.'],
         ];
 
         $amenities = json_encode(["High-speed Wi-Fi (1 Gbps)","Power backup","Cafeteria","Premium coffee","Meeting rooms","24/7 access","Reception & mail handling","Printing & scanning","Phone booths","Lockers"]);
@@ -140,13 +141,15 @@ final class Db
         $siStmt = $this->pdo->prepare("INSERT INTO seat_inventory (branchId,type,total,available,monthlyPrice) VALUES (?,?,?,?,?)");
         $mrStmt = $this->pdo->prepare("INSERT INTO meeting_rooms (id,branchId,name,capacity,hourlyPrice) VALUES (?,?,?,?,?)");
 
-        foreach ($branchAreas as $i => [$id, $slug, $name, $area, $photo, $total, $avail]) {
-            $brStmt->execute([$id, $slug, $name, "$area, Coimbatore, Tamil Nadu", 'Coimbatore', '+91 90000 00000', 'Mon–Sat · 8:00 AM – 10:00 PM', $amenities, $total, $avail, $photo, "A premium Aztech Co-Works branch in $area designed for focused work, collaboration, and growth."]);
+        foreach ($branches as $i => [$id, $slug, $name, $address, $photo, $total, $avail, $description]) {
+            $hours = $id === 'br_rn' ? '24/7 · Digital access codes' : 'Mon–Sat · 8:00 AM – 10:00 PM';
+            $brStmt->execute([$id, $slug, $name, $address, 'Coimbatore', '+91 83106 96307', $hours, $amenities, $total, $avail, $photo, $description]);
 
             $siStmt->execute([$id, 'hot_desk', 80, 30, 6500]);
             $siStmt->execute([$id, 'dedicated', 90, 25, 8500]);
             $siStmt->execute([$id, 'cabin', 40, 15, 18000]);
             $siStmt->execute([$id, 'team_office', 30, 10, 45000]);
+            $siStmt->execute([$id, 'enterprise', 4, 2, 150000]);
 
             $mrStmt->execute(["mr_{$i}_a", $id, 'Boardroom A', 12, 800]);
             $mrStmt->execute(["mr_{$i}_b", $id, 'Huddle Room', 4, 400]);
@@ -158,21 +161,22 @@ final class Db
         $plStmt->execute(['pl_ded', 'Dedicated Desk', 'dedicated', 8500, 18, 'Your own desk, 24/7 access, locker included.', json_encode(["Reserved desk","24/7 access","Lockable storage","Meeting room credits (8 hrs/mo)"])]);
         $plStmt->execute(['pl_cab', 'Private Cabin', 'cabin', 18000, 18, 'Lockable private cabin for individuals or pairs.', json_encode(["Lockable cabin","2 desks","Premium chairs","Meeting room credits (16 hrs/mo)"])]);
         $plStmt->execute(['pl_team', 'Team Office', 'team_office', 45000, 18, 'Private office for 4–20 person teams. Fully managed.', json_encode(["Custom build-out","Dedicated reception","Unlimited meeting rooms","Enterprise SLAs"])]);
+        $plStmt->execute(['pl_ent', 'Managed Enterprise Floor', 'enterprise', 150000, 18, 'Fully managed floors for 30–150+ person teams. Custom build-outs with annual lock-in contracts.', json_encode(["Custom build-out","White-labeled dashboard","Hybrid workforce tracking","Dedicated reception","Enterprise SLAs","Audit-ready compliance"])]);
 
         $uStmt = $this->pdo->prepare("INSERT INTO users (id,name,email,phone,company,role,branchId,referralCode,passwordHash,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)");
-        $uStmt->execute(['u_super', 'Aarav Kumar', 'admin@aztechcoworks.in', '+91 90000 11111', null, 'super_admin', null, 'AARAV-VIP', $pw, $now]);
+        $uStmt->execute(['u_super', 'Aarav Kumar', 'admin@aztechcoworks.in', '+91 83106 96307', null, 'super_admin', null, 'AARAV-VIP', $pw, $now]);
         $uStmt->execute(['u_sales', 'Divya Iyer', 'sales@aztechcoworks.in', null, null, 'sales_exec', null, 'DIVYA-100', $pw, $now]);
         $uStmt->execute(['u_smgr', 'Rohit Pillai', 'salesmgr@aztechcoworks.in', null, null, 'sales_manager', null, 'ROHIT-200', $pw, $now]);
-        $uStmt->execute(['u_rec', 'Meera Sundar', 'reception@aztechcoworks.in', null, null, 'reception', 'br_rs', 'MEERA-300', $pw, $now]);
-        $uStmt->execute(['u_brm', 'Karthik Raja', 'branchmgr@aztechcoworks.in', null, null, 'branch_manager', 'br_rs', 'KARTHIK-400', $pw, $now]);
+        $uStmt->execute(['u_rec', 'Meera Sundar', 'reception@aztechcoworks.in', null, null, 'reception', 'br_bk', 'MEERA-300', $pw, $now]);
+        $uStmt->execute(['u_brm', 'Karthik Raja', 'branchmgr@aztechcoworks.in', null, null, 'branch_manager', 'br_bk', 'KARTHIK-400', $pw, $now]);
         $uStmt->execute(['u_fin', 'Sneha Nair', 'finance@aztechcoworks.in', null, null, 'finance', null, 'SNEHA-500', $pw, $now]);
         $uStmt->execute(['u_mkt', 'Vikram Joshi', 'marketing@aztechcoworks.in', null, null, 'marketing', null, 'VIKRAM-600', $pw, $now]);
-        $uStmt->execute(['u_member', 'Anjali Menon', 'anjali@cibylstudios.com', '+91 98765 43210', 'Cibyl Studios', 'member', 'br_pn', 'ANJALI-CW', $pw, $now]);
+        $uStmt->execute(['u_member', 'Anjali Menon', 'anjali@cibylstudios.com', '+91 98765 43210', 'Cibyl Studios', 'member', 'br_rs', 'ANJALI-CW', $pw, $now]);
 
         $ldStmt = $this->pdo->prepare("INSERT INTO leads (id,name,email,phone,source,branchId,planId,teamSize,budget,timeline,message,score,stage,ownerId,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-        $ldStmt->execute(['ld1','Suresh Babu','suresh@orangefin.in','+91 99887 76655','website','br_sg','pl_team',12,60000,'1_month','Looking for a team office for our fintech.',86,'qualified','u_sales',$now]);
+        $ldStmt->execute(['ld1','Suresh Babu','suresh@orangefin.in','+91 99887 76655','website','br_sb','pl_team',12,60000,'1_month','Looking for a team office for our fintech.',86,'qualified','u_sales',$now]);
         $ldStmt->execute(['ld2','Priya Ramesh','priya@studiokin.co','+91 90000 23456','website','br_rs','pl_ded',3,25000,'immediate',null,78,'site_visit','u_sales',$now]);
-        $ldStmt->execute(['ld3','Manoj K','manoj@indigocode.dev','+91 90000 99887','whatsapp','br_pn','pl_hot',1,7000,'immediate',null,64,'new',null,$now]);
+        $ldStmt->execute(['ld3','Manoj K','manoj@indigocode.dev','+91 90000 99887','whatsapp','br_rn','pl_hot',1,7000,'immediate',null,64,'new',null,$now]);
 
         $tkStmt = $this->pdo->prepare("INSERT INTO tasks (id,leadId,assigneeId,title,dueAt,done) VALUES (?,?,?,?,?,0)");
         $tkStmt->execute(['tk1','ld1','u_sales','Send proposal to Suresh', gmdate('c', time()+86400)]);
@@ -182,7 +186,7 @@ final class Db
             ->execute(['sv1','ld2','br_rs', gmdate('c', time()+86400), 'scheduled', 'self_serve']);
 
         $this->pdo->prepare("INSERT INTO memberships (id,userId,planId,branchId,seats,status,startDate,endDate) VALUES (?,?,?,?,?,?,?,?)")
-            ->execute(['mb1','u_member','pl_ded','br_pn',1,'active','2026-01-15','2026-07-15']);
+            ->execute(['mb1','u_member','pl_ded','br_rs',1,'active','2026-01-15','2026-07-15']);
 
         $invStmt = $this->pdo->prepare("INSERT INTO invoices (id,number,userId,membershipId,subtotal,gst,total,status,issuedAt) VALUES (?,?,?,?,?,?,?,?,?)");
         $invStmt->execute(['inv1','AZTECH-2026-0001','u_member','mb1',8500,1530,10030,'paid','2026-06-01']);

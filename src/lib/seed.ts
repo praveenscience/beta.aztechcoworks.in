@@ -18,51 +18,75 @@ import type {
 
 const now = () => new Date().toISOString();
 
+const defaultAmenities = [
+  "High-speed Wi-Fi (1 Gbps)",
+  "Power backup",
+  "Cafeteria",
+  "Premium coffee",
+  "Meeting rooms",
+  "24/7 access",
+  "Reception & mail handling",
+  "Printing & scanning",
+  "Phone booths",
+  "Lockers",
+];
+
 function makeBranch(
   id: string,
   slug: string,
   name: string,
-  area: string,
+  address: string,
+  description: string,
   photo: string,
   total: number,
   available: number,
+  hours = "Mon–Sat · 8:00 AM – 10:00 PM",
 ): Branch {
   return {
     id,
     slug,
     name,
-    address: `${area}, Coimbatore, Tamil Nadu`,
+    address,
     city: "Coimbatore",
-    phone: "+91 90000 00000",
-    hours: "Mon–Sat · 8:00 AM – 10:00 PM",
-    amenities: [
-      "High-speed Wi-Fi (1 Gbps)",
-      "Power backup",
-      "Cafeteria",
-      "Premium coffee",
-      "Meeting rooms",
-      "24/7 access",
-      "Reception & mail handling",
-      "Printing & scanning",
-      "Phone booths",
-      "Lockers",
-    ],
+    phone: "+91 83106 96307",
+    hours,
+    amenities: defaultAmenities,
     totalSeats: total,
     availableSeats: available,
     isActive: true,
     photo,
-    description: `A premium Aztech Co-Works branch in ${area} designed for focused work, collaboration, and growth. Built for founders, freelancers, and growing teams.`,
+    description,
   };
 }
 
 // ─── Branches ────────────────────────────────────
 
 export const seedBranches: Branch[] = [
-  makeBranch("br_rs", "rs-puram", "Aztech R.S. Puram", "R.S. Puram", "photo-1497366216548-37526070297c", 240, 80),
-  makeBranch("br_pn", "peelamedu", "Aztech Peelamedu", "Peelamedu", "photo-1497366754035-f200968a6e72", 240, 75),
-  makeBranch("br_ga", "gandhipuram", "Aztech Gandhipuram", "Gandhipuram", "photo-1556761175-5973dc0f32e7", 240, 90),
-  makeBranch("br_sg", "saravanampatti", "Aztech Saravanampatti", "Saravanampatti (IT Corridor)", "photo-1604328698692-f76ea9498e76", 240, 85),
-  makeBranch("br_av", "avinashi-road", "Aztech Avinashi Road", "Avinashi Road", "photo-1568992687947-868a62a9f521", 240, 70),
+  makeBranch("br_bk", "brookfields", "Aztech Brookfields",
+    "Dr Krishnasamy Mudaliyar Rd, Above Kailash Parbat, Brookefields, Sukrawar Pettai, R.S. Puram, Coimbatore, Tamil Nadu 641001",
+    "The Aztech flagship at Brookfields Mall — large team operations, fully managed enterprise setups (20 to 150+ seaters), and premium corporate workstations.",
+    "photo-1497366216548-37526070297c", 200, 60),
+  makeBranch("br_rs", "rs-puram", "Aztech RS Puram",
+    "2nd Floor, Indsil House, E TV Swamy Road, RS Puram, Coimbatore, Tamil Nadu 641002",
+    "Premium enterprise wings, custom executive suites, private cabins, and day-pass coworking at the heart of RS Puram.",
+    "photo-1497366754035-f200968a6e72", 200, 65),
+  makeBranch("br_re", "rs-puram-east", "Aztech RS Puram East",
+    "2nd Floor, 161 L, E Ponnurangam Road (East), RS Puram, Coimbatore, Tamil Nadu 641002",
+    "Ideal for freelancers, startups, back-office operations, training centers, and virtual office rentals.",
+    "photo-1556761175-5973dc0f32e7", 200, 80),
+  makeBranch("br_rn", "ram-nagar", "Aztech Ram Nagar",
+    "Near Vivekananda Road, Ram Nagar, Coimbatore",
+    "24/7 access hub with digital door codes — work on your schedule, any time of day or night.",
+    "photo-1604328698692-f76ea9498e76", 200, 75,
+    "24/7 · Digital access codes"),
+  makeBranch("br_at", "att-colony", "Aztech ATT Colony",
+    "Aztech Elysium Towers, ATT Colony, Coimbatore",
+    "Modern tech-startup floors and corporate satellite offices in the vibrant ATT Colony neighborhood.",
+    "photo-1568992687947-868a62a9f521", 200, 70),
+  makeBranch("br_sb", "saibaba-colony", "Aztech Saibaba Colony",
+    "Aztech Sanhasa Square, Saibaba Colony, Coimbatore",
+    "High-density scale-up teams and private corporate cabins at Sanhasa Square.",
+    "photo-1555396273-367ea4eb4db5", 200, 65),
 ];
 
 // ─── Seat Inventory ──────────────────────────────
@@ -72,6 +96,7 @@ export const seedSeatInventory: SeatInventory[] = seedBranches.flatMap((b) => [
   { branchId: b.id, type: "dedicated", total: 90, available: 25, monthlyPrice: 8500 },
   { branchId: b.id, type: "cabin", total: 40, available: 15, monthlyPrice: 18000 },
   { branchId: b.id, type: "team_office", total: 30, available: 10, monthlyPrice: 45000 },
+  { branchId: b.id, type: "enterprise" as const, total: 4, available: 2, monthlyPrice: 150000 },
 ]);
 
 // ─── Meeting Rooms ───────────────────────────────
@@ -121,30 +146,39 @@ export const seedPlans: Plan[] = [
     description: "Private office for 4–20 person teams. Fully managed.",
     features: ["Custom build-out", "Dedicated reception", "Unlimited meeting rooms", "Enterprise SLAs"],
   },
+  {
+    id: "pl_ent",
+    name: "Managed Enterprise Floor",
+    seatType: "enterprise",
+    basePrice: 150000,
+    gstRate: 18,
+    description: "Fully managed floors for 30–150+ person teams. Custom build-outs with annual lock-in contracts.",
+    features: ["Custom build-out", "White-labeled dashboard", "Hybrid workforce tracking", "Dedicated reception", "Enterprise SLAs", "Audit-ready compliance"],
+  },
 ];
 
 // ─── Users ───────────────────────────────────────
 
 export const seedUsers: User[] = [
-  { id: "u_super", name: "Aarav Kumar", email: "admin@aztechcoworks.in", phone: "+91 90000 11111", role: "super_admin", referralCode: "AARAV-VIP", createdAt: now() },
+  { id: "u_super", name: "Aarav Kumar", email: "admin@aztechcoworks.in", phone: "+91 83106 96307", role: "super_admin", referralCode: "AARAV-VIP", createdAt: now() },
   { id: "u_sales", name: "Divya Iyer", email: "sales@aztechcoworks.in", role: "sales_exec", referralCode: "DIVYA-100", createdAt: now() },
   { id: "u_smgr", name: "Rohit Pillai", email: "salesmgr@aztechcoworks.in", role: "sales_manager", referralCode: "ROHIT-200", createdAt: now() },
-  { id: "u_rec", name: "Meera Sundar", email: "reception@aztechcoworks.in", role: "reception", branchId: "br_rs", referralCode: "MEERA-300", createdAt: now() },
-  { id: "u_brm", name: "Karthik Raja", email: "branchmgr@aztechcoworks.in", role: "branch_manager", branchId: "br_rs", referralCode: "KARTHIK-400", createdAt: now() },
+  { id: "u_rec", name: "Meera Sundar", email: "reception@aztechcoworks.in", role: "reception", branchId: "br_bk", referralCode: "MEERA-300", createdAt: now() },
+  { id: "u_brm", name: "Karthik Raja", email: "branchmgr@aztechcoworks.in", role: "branch_manager", branchId: "br_bk", referralCode: "KARTHIK-400", createdAt: now() },
   { id: "u_fin", name: "Sneha Nair", email: "finance@aztechcoworks.in", role: "finance", referralCode: "SNEHA-500", createdAt: now() },
   { id: "u_mkt", name: "Vikram Joshi", email: "marketing@aztechcoworks.in", role: "marketing", referralCode: "VIKRAM-600", createdAt: now() },
-  { id: "u_member", name: "Anjali Menon", email: "anjali@cibylstudios.com", phone: "+91 98765 43210", company: "Cibyl Studios", role: "member", branchId: "br_pn", referralCode: "ANJALI-CW", createdAt: now() },
+  { id: "u_member", name: "Anjali Menon", email: "anjali@cibylstudios.com", phone: "+91 98765 43210", company: "Cibyl Studios", role: "member", branchId: "br_rs", referralCode: "ANJALI-CW", createdAt: now() },
 ];
 
 // ─── Leads ───────────────────────────────────────
 
 export const seedLeads: Lead[] = [
-  { id: "ld1", name: "Suresh Babu", email: "suresh@orangefin.in", phone: "+91 99887 76655", source: "website", branchId: "br_sg", planId: "pl_team", teamSize: 12, budget: 60000, timeline: "1_month", message: "Looking for a team office for our fintech.", score: 86, stage: "qualified", ownerId: "u_sales", createdAt: now() },
+  { id: "ld1", name: "Suresh Babu", email: "suresh@orangefin.in", phone: "+91 99887 76655", source: "website", branchId: "br_sb", planId: "pl_team", teamSize: 12, budget: 60000, timeline: "1_month", message: "Looking for a team office for our fintech.", score: 86, stage: "qualified", ownerId: "u_sales", createdAt: now() },
   { id: "ld2", name: "Priya Ramesh", email: "priya@studiokin.co", phone: "+91 90000 23456", source: "website", branchId: "br_rs", planId: "pl_ded", teamSize: 3, budget: 25000, timeline: "immediate", score: 78, stage: "site_visit", ownerId: "u_sales", createdAt: now() },
-  { id: "ld3", name: "Manoj K", email: "manoj@indigocode.dev", phone: "+91 90000 99887", source: "whatsapp", branchId: "br_pn", planId: "pl_hot", teamSize: 1, budget: 7000, timeline: "immediate", score: 64, stage: "new", createdAt: now() },
-  { id: "ld4", name: "Rahul Verma", email: "rahul@northwindlabs.io", phone: "+91 98800 11223", source: "corporate", branchId: "br_av", planId: "pl_team", teamSize: 20, budget: 120000, timeline: "3_months", score: 92, stage: "proposal", ownerId: "u_sales", createdAt: now() },
-  { id: "ld5", name: "Lakshmi P", email: "lakshmi@brewlab.in", phone: "+91 99000 22334", source: "referral", branchId: "br_ga", planId: "pl_cab", teamSize: 2, budget: 18000, timeline: "exploring", score: 55, stage: "contacted", ownerId: "u_sales", createdAt: now() },
-  { id: "ld6", name: "Sandeep V", email: "sandeep@noveltech.co", phone: "+91 88990 22334", source: "website", branchId: "br_rs", planId: "pl_ded", teamSize: 4, budget: 30000, timeline: "1_month", score: 70, stage: "won", ownerId: "u_sales", createdAt: now() },
+  { id: "ld3", name: "Manoj K", email: "manoj@indigocode.dev", phone: "+91 90000 99887", source: "whatsapp", branchId: "br_rn", planId: "pl_hot", teamSize: 1, budget: 7000, timeline: "immediate", score: 64, stage: "new", createdAt: now() },
+  { id: "ld4", name: "Rahul Verma", email: "rahul@northwindlabs.io", phone: "+91 98800 11223", source: "corporate", branchId: "br_rs", planId: "pl_team", teamSize: 20, budget: 120000, timeline: "3_months", score: 92, stage: "proposal", ownerId: "u_sales", createdAt: now() },
+  { id: "ld5", name: "Lakshmi P", email: "lakshmi@brewlab.in", phone: "+91 99000 22334", source: "referral", branchId: "br_rn", planId: "pl_cab", teamSize: 2, budget: 18000, timeline: "exploring", score: 55, stage: "contacted", ownerId: "u_sales", createdAt: now() },
+  { id: "ld6", name: "Sandeep V", email: "sandeep@noveltech.co", phone: "+91 88990 22334", source: "website", branchId: "br_at", planId: "pl_ded", teamSize: 4, budget: 30000, timeline: "1_month", score: 70, stage: "won", ownerId: "u_sales", createdAt: now() },
   { id: "ld7", name: "Anita Rao", email: "anita@mintkernel.dev", phone: "+91 88990 99887", source: "website", branchId: "br_pn", teamSize: 6, budget: 35000, timeline: "exploring", score: 45, stage: "lost", ownerId: "u_sales", lostReason: "Went with competitor", createdAt: now() },
 ];
 
@@ -165,7 +199,7 @@ export const seedSiteVisits: SiteVisit[] = [
 // ─── Memberships & Invoices ──────────────────────
 
 export const seedMemberships: Membership[] = [
-  { id: "mb1", userId: "u_member", planId: "pl_ded", branchId: "br_pn", seats: 1, status: "active", startDate: "2026-01-15", endDate: "2026-07-15" },
+  { id: "mb1", userId: "u_member", planId: "pl_ded", branchId: "br_rs", seats: 1, status: "active", startDate: "2026-01-15", endDate: "2026-07-15" },
 ];
 
 export const seedInvoices: Invoice[] = [
@@ -188,8 +222,8 @@ export const seedForms: FormDefinition[] = [
       { key: "name", label: "Full name", type: "text", required: true },
       { key: "email", label: "Work email", type: "email", required: true },
       { key: "phone", label: "Phone (WhatsApp)", type: "phone", required: true },
-      { key: "branchId", label: "Preferred branch", type: "select", required: false, options: ["br_rs", "br_pn", "br_ga", "br_sg", "br_av"] },
-      { key: "planId", label: "Workspace type", type: "select", required: false, options: ["pl_hot", "pl_ded", "pl_cab", "pl_team"] },
+      { key: "branchId", label: "Preferred branch", type: "select", required: false, options: ["br_bk", "br_rs", "br_re", "br_rn", "br_at", "br_sb"] },
+      { key: "planId", label: "Workspace type", type: "select", required: false, options: ["pl_hot", "pl_ded", "pl_cab", "pl_team", "pl_ent"] },
       { key: "teamSize", label: "Team size", type: "number", required: false },
       { key: "message", label: "Anything else?", type: "textarea", required: false },
     ],
@@ -276,7 +310,7 @@ export const seedBlog: BlogPost[] = [
 // ─── Testimonials ────────────────────────────────
 
 export const seedTestimonials: Testimonial[] = [
-  { id: "t1", name: "Karthik Subramaniam", company: "Loop Analytics", role: "Founder & CEO", quote: "Aztech let us scale from 3 to 22 people without ever moving offices. The Peelamedu branch is our HQ now.", avatar: "photo-1500648767791-00dcc994a43e" },
+  { id: "t1", name: "Karthik Subramaniam", company: "Loop Analytics", role: "Founder & CEO", quote: "Aztech let us scale from 3 to 22 people without ever moving offices. The RS Puram branch is our HQ now.", avatar: "photo-1500648767791-00dcc994a43e" },
   { id: "t2", name: "Anjali Menon", company: "Cibyl Studios", role: "Design Lead", quote: "The community is real. We've hired two engineers from coffee chats in the lounge.", avatar: "photo-1438761681033-6461ffad8d80" },
   { id: "t3", name: "Vignesh Raghavan", company: "Northwind Labs", role: "CTO", quote: "Best workspace in Coimbatore, hands down. The Wi-Fi alone is worth it.", avatar: "photo-1472099645785-5658abf4ff4e" },
 ];
