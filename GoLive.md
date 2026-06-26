@@ -1,6 +1,6 @@
 # Aztech Co-Works — Go-Live & GTM Plan
 
-**Status:** Pre-launch (demo-ready, not production-ready)
+**Status:** Phase 1 + Phase 2 complete. Needs env vars + deployment to go live.
 **Target launch:** 4 weeks from start
 **Owner:** Praveen Kumar Purushothaman (CTO & Co-Founder)
 
@@ -27,17 +27,21 @@
 - 33 API endpoints (4 auth + 6 public + 2 public mutations + 21 dashboard)
 - Session-based auth with secure cookie flags
 
+### Recently Completed (Phase 1 + 2)
+- [x] Razorpay payment integration (create-order, verify, webhook, demo mode)
+- [x] Password reset flow (forgot-password, reset-password, secure tokens)
+- [x] Transactional email via Resend (welcome, reset, booking, invoice, site visit)
+- [x] Booking conflict detection (409 on overlapping rooms)
+- [x] Google Analytics 4 (page views + conversion events)
+- [x] SEO: sitemap.xml, robots.txt, JSON-LD structured data (Organization + 6 CoworkingSpaces)
+- [x] PDF invoice generation (pdfmake, GST-compliant, CGST/SGST split, HSN code)
+- [x] Automated tests: Vitest + 19 tests (lead scoring, workflows, formatting)
+
 ### What's NOT Done
-- No payment gateway (Razorpay)
-- No password reset / forgot password flow
-- No transactional email (signup confirmation, invoices, booking confirmations)
 - No real branch photos (using Unsplash placeholders)
-- No booking conflict detection (double-booking possible)
-- No Google Analytics / conversion tracking
 - No WhatsApp Business API integration
-- No PDF invoice generation (GST-compliant)
-- No automated tests
 - Backend not deployed to production hosting
+- Env vars not configured (RESEND_API_KEY, RAZORPAY_KEY_ID/SECRET, VITE_GA_MEASUREMENT_ID)
 
 ---
 
