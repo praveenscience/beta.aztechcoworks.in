@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard } from "lucide-react";
+import { Calendar, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { useMe, useBranches, useMyBookings, useCreateBooking, useCreateInvoice, useMeetingRooms } from "@/lib/queries";
 import { inr } from "@/lib/format";
@@ -184,7 +184,7 @@ function BookingsPage() {
         </CardHeader>
         <CardContent>
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-muted-foreground"><tr><th className="py-2">Type</th><th>Branch</th><th>When</th><th>Amount</th><th>Status</th></tr></thead>
+            <thead className="text-left text-xs uppercase text-muted-foreground"><tr><th className="py-2">Type</th><th>Branch</th><th>When</th><th>Amount</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {bookings.map((b) => {
                 const room = rooms.find((r) => r.id === b.resourceId);
@@ -196,10 +196,19 @@ function BookingsPage() {
                     <td>{new Date(b.startAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
                     <td className="font-mono">{inr(Math.round(b.amount * 1.18))}</td>
                     <td><Badge>{b.status}</Badge></td>
+                    <td>
+                      {b.status === "confirmed" && (
+                        <Button size="sm" variant="ghost" asChild>
+                          <a href={`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/dashboard/bookings/${b.id}/ics`} download>
+                            <Calendar className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
-              {bookings.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-muted-foreground">No bookings yet.</td></tr>}
+              {bookings.length === 0 && <tr><td colSpan={6} className="py-6 text-center text-muted-foreground">No bookings yet.</td></tr>}
             </tbody>
           </table>
         </CardContent>

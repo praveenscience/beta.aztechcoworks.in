@@ -210,6 +210,16 @@ sqlite.exec(`
     avatar TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    action TEXT NOT NULL,
+    entityType TEXT NOT NULL,
+    entityId TEXT,
+    detail TEXT,
+    createdAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS password_reset_tokens (
     token TEXT PRIMARY KEY,
     userId TEXT NOT NULL REFERENCES users(id),
@@ -241,6 +251,8 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_visitors_hostUserId ON visitors(hostUserId);
   CREATE INDEX IF NOT EXISTS idx_lead_activities_leadId ON lead_activities(leadId);
   CREATE INDEX IF NOT EXISTS idx_tasks_assigneeId ON tasks(assigneeId);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_userId ON audit_logs(userId);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_entityType ON audit_logs(entityType);
   CREATE INDEX IF NOT EXISTS idx_payments_orderId ON payments(orderId);
   CREATE INDEX IF NOT EXISTS idx_payments_invoiceId ON payments(invoiceId);
   CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_userId ON password_reset_tokens(userId);
@@ -531,6 +543,21 @@ export const db = {
 
   testimonials: {
     all: () => getAllRows<Testimonial>("testimonials", "testimonials"),
+  },
+
+  auditLogs: {
+    all: (limit = 200) => {
+      return sqlite.prepare("SELECT * FROM audit_logs ORDER BY createdAt DESC LIMIT ?").all(limit) as any[];
+    },
+    byEntity: (entityType: string, entityId: string) => {
+      return sqlite.prepare("SELECT * FROM audit_logs WHERE entityType = ? AND entityId = ? ORDER BY createdAt DESC").all(entityType, entityId) as any[];
+    },
+    insert: (log: { userId: string; action: string; entityType: string; entityId?: string; detail?: string }) => {
+      const id = `al_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+      sqlite.prepare(
+        "INSERT INTO audit_logs (id, userId, action, entityType, entityId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).run(id, log.userId, log.action, log.entityType, log.entityId ?? null, log.detail ?? null, new Date().toISOString());
+    },
   },
 
   passwordResetTokens: {

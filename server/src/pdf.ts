@@ -1,18 +1,6 @@
-// PDF invoice generation using pdfmake (pure JS, no native deps).
+// PDF invoice generation using PDFKit (native Node.js PDF library).
 
-import PdfPrinter from "pdfmake";
-import type { TDocumentDefinitions, TFontDictionary } from "pdfmake/interfaces";
-
-const fonts: TFontDictionary = {
-  Helvetica: {
-    normal: "Helvetica",
-    bold: "Helvetica-Bold",
-    italics: "Helvetica-Oblique",
-    bolditalics: "Helvetica-BoldOblique",
-  },
-};
-
-const printer = new PdfPrinter(fonts);
+import PDFDocument from "pdfkit";
 
 interface InvoiceData {
   number: string;
@@ -34,145 +22,110 @@ function inr(n: number) {
 }
 
 export function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
-  const cgst = Math.round(data.gst / 2);
-  const sgst = data.gst - cgst;
-
-  const docDefinition: TDocumentDefinitions = {
-    defaultStyle: { font: "Helvetica", fontSize: 10 },
-    pageSize: "A4",
-    pageMargins: [40, 40, 40, 60],
-    content: [
-      // Header
-      {
-        columns: [
-          {
-            width: "*",
-            stack: [
-              { text: "AZTECH CO-WORKS", style: "company" },
-              { text: "Premium Coworking & Managed Offices", style: "tagline" },
-              { text: "Coimbatore, Tamil Nadu, India", style: "subtext" },
-              { text: "GSTIN: ______________", style: "subtext" },
-            ],
-          },
-          {
-            width: "auto",
-            stack: [
-              { text: "TAX INVOICE", style: "invoiceTitle" },
-              { text: `#${data.number}`, style: "invoiceNumber" },
-            ],
-            alignment: "right",
-          },
-        ],
-      },
-      { canvas: [{ type: "line", x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 1, lineColor: "#e2e8f0" }] },
-
-      // Invoice meta
-      {
-        margin: [0, 15, 0, 15],
-        columns: [
-          {
-            width: "*",
-            stack: [
-              { text: "Bill To:", style: "label" },
-              { text: data.userName, bold: true, fontSize: 11 },
-              ...(data.userCompany ? [{ text: data.userCompany, style: "subtext" }] : []),
-              { text: data.userEmail, style: "subtext" },
-            ],
-          },
-          {
-            width: "auto",
-            stack: [
-              { text: [{ text: "Date: ", style: "label" }, new Date(data.issuedAt).toLocaleDateString("en-IN", { dateStyle: "long" })], alignment: "right" },
-              { text: [{ text: "Status: ", style: "label" }, data.status.toUpperCase()], alignment: "right" },
-              ...(data.branchName ? [{ text: [{ text: "Branch: ", style: "label" as const }, data.branchName], alignment: "right" as const }] : []),
-            ],
-          },
-        ],
-      },
-
-      // Line items table
-      {
-        margin: [0, 5, 0, 15],
-        table: {
-          headerRows: 1,
-          widths: ["*", 60, 80, 80],
-          body: [
-            [
-              { text: "Description", style: "tableHeader" },
-              { text: "HSN/SAC", style: "tableHeader" },
-              { text: "Qty", style: "tableHeader", alignment: "center" },
-              { text: "Amount", style: "tableHeader", alignment: "right" },
-            ],
-            [
-              data.description,
-              "997212",
-              { text: "1", alignment: "center" },
-              { text: inr(data.subtotal), alignment: "right" },
-            ],
-          ],
-        },
-        layout: {
-          hLineWidth: (i: number, node: any) => (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0,
-          vLineWidth: () => 0,
-          hLineColor: () => "#e2e8f0",
-          paddingTop: () => 8,
-          paddingBottom: () => 8,
-        },
-      },
-
-      // Totals
-      {
-        margin: [0, 0, 0, 20],
-        columns: [
-          { width: "*", text: "" },
-          {
-            width: 200,
-            table: {
-              widths: ["*", "auto"],
-              body: [
-                [{ text: "Subtotal", style: "label" }, { text: inr(data.subtotal), alignment: "right" }],
-                [{ text: "CGST (9%)", style: "label" }, { text: inr(cgst), alignment: "right" }],
-                [{ text: "SGST (9%)", style: "label" }, { text: inr(sgst), alignment: "right" }],
-                [
-                  { text: "Total", bold: true, fontSize: 12 },
-                  { text: inr(data.total), bold: true, fontSize: 12, alignment: "right" },
-                ],
-              ],
-            },
-            layout: {
-              hLineWidth: (i: number) => (i === 3) ? 1 : 0,
-              vLineWidth: () => 0,
-              hLineColor: () => "#0f172a",
-              paddingTop: () => 4,
-              paddingBottom: () => 4,
-            },
-          },
-        ],
-      },
-
-      // Footer note
-      { canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: "#e2e8f0" }] },
-      { text: "This is a computer-generated invoice and does not require a signature.", style: "footnote", margin: [0, 10, 0, 0] },
-      { text: "Aztech Co-Works | +91 83106 96307 | aztechcoworks.in", style: "footnote" },
-    ],
-    styles: {
-      company: { fontSize: 16, bold: true, color: "#0f172a" },
-      tagline: { fontSize: 9, color: "#64748b", margin: [0, 2, 0, 2] },
-      invoiceTitle: { fontSize: 18, bold: true, color: "#0f172a" },
-      invoiceNumber: { fontSize: 11, color: "#64748b" },
-      label: { fontSize: 9, color: "#64748b" },
-      subtext: { fontSize: 9, color: "#475569" },
-      tableHeader: { bold: true, fontSize: 9, color: "#475569", fillColor: "#f8fafc" },
-      footnote: { fontSize: 8, color: "#94a3b8", alignment: "center" },
-    },
-  };
-
   return new Promise((resolve, reject) => {
-    const doc = printer.createPdfKitDocument(docDefinition);
+    const doc = new PDFDocument({ size: "A4", margin: 40 });
     const chunks: Buffer[] = [];
+
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
+
+    const cgst = Math.round(data.gst / 2);
+    const sgst = data.gst - cgst;
+    const pageWidth = doc.page.width - 80; // 40px margin each side
+
+    // ─── Header ───────────────────────────────────
+    doc.fontSize(16).font("Helvetica-Bold").text("AZTECH CO-WORKS", 40, 40);
+    doc.fontSize(9).font("Helvetica").fillColor("#64748b")
+      .text("Premium Coworking & Managed Offices", 40, 58);
+    doc.fillColor("#475569")
+      .text("Coimbatore, Tamil Nadu, India", 40, 70)
+      .text("GSTIN: ______________", 40, 82);
+
+    // Invoice title (right-aligned)
+    doc.fontSize(18).font("Helvetica-Bold").fillColor("#000000")
+      .text("TAX INVOICE", 0, 40, { align: "right", width: pageWidth + 40 });
+    doc.fontSize(11).font("Helvetica").fillColor("#64748b")
+      .text(`#${data.number}`, 0, 62, { align: "right", width: pageWidth + 40 });
+
+    // ─── Bill To + Meta ───────────────────────────
+    const billY = 115;
+    doc.fontSize(9).font("Helvetica").fillColor("#64748b")
+      .text("Bill To:", 40, billY);
+    doc.fontSize(11).font("Helvetica-Bold").fillColor("#000000")
+      .text(data.userName, 40, billY + 14);
+
+    let billOffset = billY + 28;
+    if (data.userCompany) {
+      doc.fontSize(9).font("Helvetica").fillColor("#475569")
+        .text(data.userCompany, 40, billOffset);
+      billOffset += 12;
+    }
+    doc.fontSize(9).font("Helvetica").fillColor("#475569")
+      .text(data.userEmail, 40, billOffset);
+
+    // Right side: date, status, branch
+    const dateStr = new Date(data.issuedAt).toLocaleDateString("en-IN", { dateStyle: "long" });
+    doc.fontSize(9).font("Helvetica").fillColor("#000000")
+      .text(`Date: ${dateStr}`, 0, billY, { align: "right", width: pageWidth + 40 })
+      .text(`Status: ${data.status.toUpperCase()}`, 0, billY + 14, { align: "right", width: pageWidth + 40 });
+    if (data.branchName) {
+      doc.text(`Branch: ${data.branchName}`, 0, billY + 28, { align: "right", width: pageWidth + 40 });
+    }
+
+    // ─── Line Items Table ─────────────────────────
+    const tableY = 185;
+    const col1 = 40;
+    const col2 = 320;
+    const col3 = 400;
+    const col4 = pageWidth + 40;
+
+    // Header row
+    doc.rect(col1, tableY, pageWidth, 20).fill("#f1f5f9");
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#000000")
+      .text("Description", col1 + 5, tableY + 5)
+      .text("HSN/SAC", col2, tableY + 5)
+      .text("Qty", col3, tableY + 5, { width: 40, align: "center" })
+      .text("Amount", col4 - 80, tableY + 5, { width: 75, align: "right" });
+
+    // Data row
+    const rowY = tableY + 22;
+    doc.font("Helvetica").fillColor("#000000")
+      .text(data.description, col1 + 5, rowY + 5, { width: col2 - col1 - 10 })
+      .text("997212", col2, rowY + 5)
+      .text("1", col3, rowY + 5, { width: 40, align: "center" })
+      .text(inr(data.subtotal), col4 - 80, rowY + 5, { width: 75, align: "right" });
+
+    // Row border
+    doc.moveTo(col1, rowY + 20).lineTo(col1 + pageWidth, rowY + 20).strokeColor("#e2e8f0").stroke();
+
+    // ─── Totals ───────────────────────────────────
+    const totalsX = col4 - 200;
+    let totalsY = rowY + 40;
+
+    const totalRow = (label: string, value: string, bold = false) => {
+      doc.fontSize(bold ? 12 : 9)
+        .font(bold ? "Helvetica-Bold" : "Helvetica")
+        .fillColor(bold ? "#000000" : "#64748b")
+        .text(label, totalsX, totalsY);
+      doc.fillColor("#000000")
+        .text(value, col4 - 80, totalsY, { width: 75, align: "right" });
+      totalsY += bold ? 22 : 16;
+    };
+
+    totalRow("Subtotal", inr(data.subtotal));
+    totalRow("CGST (9%)", inr(cgst));
+    totalRow("SGST (9%)", inr(sgst));
+    totalsY += 4;
+    totalRow("Total", inr(data.total), true);
+
+    // ─── Footer ───────────────────────────────────
+    const footerY = totalsY + 40;
+    doc.moveTo(40, footerY).lineTo(pageWidth + 40, footerY).strokeColor("#e2e8f0").stroke();
+    doc.fontSize(8).font("Helvetica").fillColor("#94a3b8")
+      .text("This is a computer-generated invoice and does not require a signature.", 40, footerY + 10, { align: "center", width: pageWidth })
+      .text("Aztech Co-Works | +91 83106 96307 | aztechcoworks.in", 40, footerY + 22, { align: "center", width: pageWidth });
+
     doc.end();
   });
 }

@@ -7,6 +7,7 @@ import { uid } from "../uid.js";
 import { validate } from "../validation.js";
 import { z } from "zod";
 import { sendInvoiceEmail } from "../email.js";
+import { sendPaymentReceipt } from "../whatsapp.js";
 
 const router = Router();
 
@@ -34,6 +35,18 @@ const verifySchema = z.object({
   razorpay_payment_id: z.string(),
   razorpay_signature: z.string(),
 });
+
+function notifyPaymentSuccess(invoiceId: string) {
+  const invoice = db.invoices.find(invoiceId);
+  const user = invoice ? db.users.find(invoice.userId) : null;
+  if (invoice && user) {
+    sendInvoiceEmail(user.email, user.name, invoice).catch(() => {});
+    if (user.phone) {
+      const inr = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(invoice.total);
+      sendPaymentReceipt(user.phone, user.name, inr, invoice.number).catch(() => {});
+    }
+  }
+}
 
 // ─── GET /api/payments/key — public key for frontend ─
 
@@ -124,12 +137,7 @@ router.post("/verify", requireAuth, validate(verifySchema), (req, res) => {
     });
     if (payment.invoiceId) {
       db.invoices.update(payment.invoiceId, { status: "paid" });
-      // Send invoice email
-      const invoice = db.invoices.find(payment.invoiceId);
-      const user = invoice ? db.users.find(invoice.userId) : null;
-      if (invoice && user) {
-        sendInvoiceEmail(user.email, user.name, invoice).catch(() => {});
-      }
+      notifyPaymentSuccess(payment.invoiceId);
     }
     res.json({ verified: true, paymentId: payment.id });
     return;

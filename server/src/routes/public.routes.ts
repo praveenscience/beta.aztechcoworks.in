@@ -3,6 +3,7 @@ import { db } from "../store.js";
 import { uid } from "../uid.js";
 import { validate, leadCaptureSchema, siteVisitSchema } from "../validation.js";
 import { sendSiteVisitConfirmationEmail } from "../email.js";
+import { sendLeadWelcome, sendVisitReminder } from "../whatsapp.js";
 import type { Lead } from "../types.js";
 
 export default function publicRoutes(formLimiter: RequestHandler) {
@@ -60,6 +61,7 @@ export default function publicRoutes(formLimiter: RequestHandler) {
     };
 
     db.leads.insert(lead);
+    if (phone) sendLeadWelcome(phone, name).catch(() => {});
     res.status(201).json(lead);
   });
 
@@ -90,14 +92,16 @@ export default function publicRoutes(formLimiter: RequestHandler) {
     };
     db.siteVisits.insert(visit);
 
-    // Send confirmation email
+    // Send confirmation email + WhatsApp
     const branch = db.branches.find(branchId);
     if (branch) {
+      const visitTime = scheduledAt || "To be confirmed";
       sendSiteVisitConfirmationEmail(email, name, {
         branchName: branch.name,
         branchAddress: branch.address,
-        scheduledAt: scheduledAt || "To be confirmed",
+        scheduledAt: visitTime,
       }).catch(() => {});
+      if (phone) sendVisitReminder(phone, name, branch.name, visitTime).catch(() => {});
     }
 
     res.status(201).json({ lead, visit });

@@ -3,6 +3,8 @@ import { requireAuth, requireRole } from "../auth.js";
 import { db, hashPassword } from "../store.js";
 import { uid } from "../uid.js";
 import { generateInvoicePdf } from "../pdf.js";
+import { auditLog } from "../audit.js";
+import { generateIcs } from "../calendar.js";
 import {
   validate, leadPatchSchema, taskPatchSchema, taskCreateSchema,
   leadActivitySchema, visitorCreateSchema, bookingCreateSchema,
@@ -59,7 +61,7 @@ router.get("/leads/:id", (req, res) => {
   });
 });
 
-router.patch("/leads/:id", validate(leadPatchSchema), (req, res) => {
+router.patch("/leads/:id", auditLog("update", "lead"), validate(leadPatchSchema), (req, res) => {
   const lead = db.leads.update(req.params.id, req.body);
   if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
   res.json(lead);
@@ -164,6 +166,35 @@ router.post("/bookings", validate(bookingCreateSchema), (req, res) => {
   res.status(201).json(booking);
 });
 
+router.get("/bookings/:id/ics", async (req, res) => {
+  const booking = db.bookings.all().find((b) => b.id === req.params.id);
+  if (!booking) { res.status(404).json({ error: "Booking not found" }); return; }
+
+  const branch = db.branches.find(booking.branchId);
+  let title = "Aztech Co-Works Booking";
+  if (booking.resourceType === "meeting_room") {
+    const room = db.meetingRooms.all().find((r) => r.id === booking.resourceId);
+    title = `Meeting Room: ${room?.name || booking.resourceId}`;
+  } else if (booking.resourceType === "day_pass") {
+    title = "Day Pass — Aztech Co-Works";
+  }
+
+  try {
+    const ics = await generateIcs({
+      title,
+      description: `Booking at ${branch?.name || "Aztech Co-Works"}`,
+      location: branch?.address || "Aztech Co-Works, Coimbatore",
+      startAt: booking.startAt,
+      endAt: booking.endAt,
+    });
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="booking-${booking.id}.ics"`);
+    res.send(ics);
+  } catch {
+    res.status(500).json({ error: "Failed to generate calendar invite" });
+  }
+});
+
 // ─── Memberships ────────────────────────────────
 
 router.post("/memberships", validate(membershipCreateSchema), (req, res) => {
@@ -176,7 +207,7 @@ router.post("/memberships", validate(membershipCreateSchema), (req, res) => {
   res.status(201).json(membership);
 });
 
-router.patch("/memberships/:id/cancel", (req, res) => {
+router.patch("/memberships/:id/cancel", auditLog("cancel", "membership"), (req, res) => {
   const membership = db.memberships.update(req.params.id, { status: "cancelled" });
   if (!membership) { res.status(404).json({ error: "Membership not found" }); return; }
   res.json(membership);
@@ -193,7 +224,7 @@ router.get("/users", (req, res) => {
   res.json(db.users.all().map(({ passwordHash, ...u }) => u));
 });
 
-router.post("/users", requireRole("super_admin"), validate(userCreateSchema), (req, res) => {
+router.post("/users", requireRole("super_admin"), auditLog("create", "user"), validate(userCreateSchema), (req, res) => {
   const { name, email, role, branchId, phone } = req.body;
 
   if (db.users.findByEmail(email)) {
@@ -217,7 +248,7 @@ router.post("/users", requireRole("super_admin"), validate(userCreateSchema), (r
   res.status(201).json(safe);
 });
 
-router.patch("/users/:id", requireRole("super_admin"), validate(userPatchSchema), (req, res) => {
+router.patch("/users/:id", requireRole("super_admin"), auditLog("update", "user"), validate(userPatchSchema), (req, res) => {
   const user = db.users.update(req.params.id, req.body);
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
   const { passwordHash, ...safe } = user;
@@ -270,7 +301,7 @@ router.patch("/plans/:id", requireRole("super_admin"), (req, res) => {
   res.json(plan);
 });
 
-router.delete("/plans/:id", requireRole("super_admin"), (req, res) => {
+router.delete("/plans/:id", requireRole("super_admin"), auditLog("delete", "plan"), (req, res) => {
   db.plans.delete(req.params.id);
   res.json({ ok: true });
 });
@@ -402,6 +433,19 @@ router.get("/invoices", (req, res) => {
     return;
   }
   res.json(db.invoices.all());
+});
+
+// ─── Audit log (admin) ──────────────────────────
+
+router.get("/audit-logs", requireRole("super_admin"), (_req, res) => {
+  const logs = db.auditLogs.all(500);
+  // Enrich with user names
+  const users = db.users.all();
+  const userMap = new Map(users.map((u) => [u.id, u.name]));
+  res.json(logs.map((log: any) => ({
+    ...log,
+    userName: userMap.get(log.userId) || log.userId,
+  })));
 });
 
 export default router;
