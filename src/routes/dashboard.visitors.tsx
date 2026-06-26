@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useMe, useVisitors, useBranches } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useMe, useVisitors, useBranches, useCreateVisitor } from "@/lib/queries";
 import { QrCode } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,23 +20,23 @@ function VisitorsPage() {
   const { data: branches = [] } = useBranches();
   const { data: allVisitors = [] } = useVisitors();
   const visitors = allVisitors.filter((v) => v.hostUserId === me?.id);
-  // TODO: wire addVisitor to API mutation
-  const addVisitor = useStore((s) => s.addVisitor);
+  const createVisitorMutation = useCreateVisitor();
   const [form, setForm] = useState({ name: "", phone: "", purpose: "Meeting", branchId: me?.branchId ?? branches[0]?.id, expectedAt: new Date(Date.now() + 3600000).toISOString().slice(0, 16) });
   if (!me) return null;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    addVisitor({
-      hostUserId: me.id,
-      branchId: form.branchId!,
-      name: form.name,
-      phone: form.phone,
-      purpose: form.purpose,
-      expectedAt: new Date(form.expectedAt).toISOString(),
-    });
-    toast.success("Visitor pre-registered. QR pass emailed (demo).");
-    setForm({ ...form, name: "", phone: "" });
+    createVisitorMutation.mutate(
+      {
+        hostUserId: me.id,
+        branchId: form.branchId!,
+        name: form.name,
+        phone: form.phone,
+        purpose: form.purpose,
+        expectedAt: new Date(form.expectedAt).toISOString(),
+      },
+      { onSuccess: () => { toast.success("Visitor pre-registered. QR pass emailed (demo)."); setForm({ ...form, name: "", phone: "" }); } },
+    );
   };
 
   return (

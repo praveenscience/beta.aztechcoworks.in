@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { usePlans } from "@/lib/queries";
+import { usePlans, useUpsertPlan, useDeletePlan } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import type { Plan, SeatType } from "@/types";
 import { inr } from "@/lib/format";
@@ -19,14 +19,12 @@ export const Route = createFileRoute("/admin/pricing")({
   component: AdminPricing,
 });
 
-const seatTypes: SeatType[] = ["hot_desk", "dedicated", "cabin", "team_office"];
+const seatTypes: SeatType[] = ["hot_desk", "dedicated", "cabin", "team_office", "enterprise"];
 
 function AdminPricing() {
   const { data: plans = [] } = usePlans();
-  // TODO: wire upsertPlan to API mutation
-  const upsertPlan = useStore((s) => s.upsertPlan);
-  // TODO: wire deletePlan to API mutation
-  const deletePlan = useStore((s) => s.deletePlan);
+  const upsertPlanMutation = useUpsertPlan();
+  const deletePlanMutation = useDeletePlan();
   // No API endpoint for coupons — keep useStore
   const coupons = useStore((s) => s.coupons);
   const upsertCoupon = useStore((s) => s.upsertCoupon);
@@ -35,16 +33,10 @@ function AdminPricing() {
 
   const addPlan = () => {
     const id = `pl_${Math.random().toString(36).slice(2, 8)}`;
-    upsertPlan({
-      id,
-      name: "New plan",
-      seatType: "hot_desk",
-      basePrice: 5000,
-      gstRate: 18,
-      description: "Describe this plan.",
-      features: ["Feature 1", "Feature 2"],
-    });
-    toast.success("Plan added — edit details below.");
+    upsertPlanMutation.mutate(
+      { id, name: "New plan", seatType: "hot_desk", basePrice: 5000, gstRate: 18, description: "Describe this plan.", features: ["Feature 1", "Feature 2"] },
+      { onSuccess: () => toast.success("Plan added — edit details below.") },
+    );
   };
 
   return (
@@ -59,11 +51,10 @@ function AdminPricing() {
           <PlanEditor
             key={p.id}
             plan={p}
-            onSave={(np) => { upsertPlan(np); toast.success(`Saved ${np.name}`); }}
+            onSave={(np) => upsertPlanMutation.mutate(np, { onSuccess: () => toast.success(`Saved ${np.name}`) })}
             onDelete={() => {
               if (confirm(`Delete plan "${p.name}"? This cannot be undone.`)) {
-                deletePlan(p.id);
-                toast.success(`Deleted ${p.name}`);
+                deletePlanMutation.mutate(p.id, { onSuccess: () => toast.success(`Deleted ${p.name}`) });
               }
             }}
           />

@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useUsers, useBranches } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useUsers, useBranches, useCreateUser, useUpdateUser } from "@/lib/queries";
 import type { Role } from "@/types";
 import { roleLabels } from "@/lib/format";
 
@@ -23,8 +22,8 @@ const ALL_ROLES: Role[] = ["member", "reception", "sales_exec", "sales_manager",
 function AdminUsers() {
   const { data: users = [] } = useUsers();
   const { data: branches = [] } = useBranches();
-  // TODO: wire upsertUser to API mutation
-  const upsertUser = useStore((s) => s.upsertUser);
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
   const [form, setForm] = useState({ name: "", email: "", role: "member" as Role, branchId: "" });
 
   return (
@@ -39,17 +38,20 @@ function AdminUsers() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              upsertUser({
-                id: `u_${Math.random().toString(36).slice(2, 7)}`,
-                name: form.name,
-                email: form.email,
-                role: form.role,
-                branchId: form.branchId || undefined,
-                referralCode: `${form.name.toUpperCase().slice(0, 6)}-NEW`,
-                createdAt: new Date().toISOString(),
-              });
-              toast.success("User added");
-              setForm({ name: "", email: "", role: "member", branchId: "" });
+              createUserMutation.mutate(
+                {
+                  name: form.name,
+                  email: form.email,
+                  role: form.role,
+                  branchId: form.branchId || undefined,
+                },
+                {
+                  onSuccess: () => {
+                    toast.success("User added");
+                    setForm({ name: "", email: "", role: "member", branchId: "" });
+                  },
+                },
+              );
             }}
             className="grid gap-3 sm:grid-cols-[1.5fr_1.5fr_1fr_1fr_auto]"
           >
@@ -85,7 +87,7 @@ function AdminUsers() {
                   <td className="py-3 font-medium">{u.name}</td>
                   <td className="text-muted-foreground">{u.email}</td>
                   <td>
-                    <Select value={u.role} onValueChange={(v) => upsertUser({ ...u, role: v as Role })}>
+                    <Select value={u.role} onValueChange={(v) => updateUserMutation.mutate({ id: u.id, role: v as Role })}>
                       <SelectTrigger className="h-8 w-[160px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {ALL_ROLES.map((r) => <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>)}

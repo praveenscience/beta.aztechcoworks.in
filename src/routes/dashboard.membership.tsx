@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useMe, useMyMemberships, usePlans, useBranches } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useMe, useMyMemberships, usePlans, useBranches, useCreateMembership, useCancelMembership } from "@/lib/queries";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/membership")({
@@ -22,10 +21,8 @@ function MembershipPage() {
   const { data: allBranches = [] } = useBranches();
   const branches = allBranches.filter((b) => b.isActive);
   const { data: memberships = [] } = useMyMemberships();
-  // TODO: wire createMembership to API mutation
-  const createMembership = useStore((s) => s.createMembership);
-  // TODO: wire cancelMembership to API mutation
-  const cancelMembership = useStore((s) => s.cancelMembership);
+  const createMembershipMutation = useCreateMembership();
+  const cancelMembershipMutation = useCancelMembership();
 
   const [planId, setPlanId] = useState(plans[1]?.id);
   const [branchId, setBranchId] = useState(branches[0]?.id);
@@ -37,16 +34,22 @@ function MembershipPage() {
   const subscribe = () => {
     const plan = plans.find((p) => p.id === planId);
     if (!plan || !branchId) return;
-    createMembership({
-      userId: me.id,
-      planId,
-      branchId,
-      seats,
-      startDate: new Date().toISOString().slice(0, 10),
-      endDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-    });
-    const total = Math.round(plan.basePrice * seats * 1.18);
-    toast.success(`Membership activated! ${inr(total)} charged (demo).`);
+    createMembershipMutation.mutate(
+      {
+        userId: me.id,
+        planId,
+        branchId,
+        seats,
+        startDate: new Date().toISOString().slice(0, 10),
+        endDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+      },
+      {
+        onSuccess: () => {
+          const total = Math.round(plan.basePrice * seats * 1.18);
+          toast.success(`Membership activated! ${inr(total)} charged (demo).`);
+        },
+      },
+    );
   };
 
   return (
@@ -70,7 +73,7 @@ function MembershipPage() {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => { setSeats(active.seats + 1); subscribe(); }}>Add seat</Button>
               <Button variant="outline" onClick={() => toast.message("Upgrade flow opens (demo)")}>Upgrade</Button>
-              <Button variant="destructive" onClick={() => { cancelMembership(active.id); toast.success("Membership cancelled."); }}>Cancel</Button>
+              <Button variant="destructive" onClick={() => cancelMembershipMutation.mutate(active.id, { onSuccess: () => toast.success("Membership cancelled.") })}>Cancel</Button>
             </div>
           </CardContent>
         </Card>

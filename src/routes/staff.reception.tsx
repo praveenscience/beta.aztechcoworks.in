@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useVisitors, useBranches, useMe } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useVisitors, useBranches, useMe, useCreateLead, useCheckInVisitor, useCheckOutVisitor, useSiteVisits, useLeads } from "@/lib/queries";
 import { LogIn, LogOut, ScanLine, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,14 +17,11 @@ function Reception() {
   const { data: me } = useMe();
   const { data: visitors = [] } = useVisitors();
   const { data: branches = [] } = useBranches();
-  // No API endpoint for siteVisits list — keep useStore
-  const siteVisits = useStore((s) => s.siteVisits);
-  const leads = useStore((s) => s.leads);
-  // TODO: wire checkIn/checkOut to API mutations
-  const checkIn = useStore((s) => s.checkInVisitor);
-  const checkOut = useStore((s) => s.checkOutVisitor);
-  // TODO: wire addLead to API mutation
-  const addLead = useStore((s) => s.addLead);
+  const { data: siteVisits = [] } = useSiteVisits();
+  const { data: leads = [] } = useLeads();
+  const checkInMutation = useCheckInVisitor();
+  const checkOutMutation = useCheckOutVisitor();
+  const createLeadMutation = useCreateLead();
   const [walkin, setWalkin] = useState({ name: "", phone: "" });
 
   const branchId = me?.branchId;
@@ -79,8 +75,8 @@ function Reception() {
                   <div className="text-xs text-muted-foreground">{v.purpose} · QR <span className="font-mono">{v.qrToken}</span></div>
                 </div>
                 <div className="flex gap-1">
-                  {!v.checkedInAt && <Button size="sm" variant="outline" onClick={() => { checkIn(v.id); toast.success("Checked in"); }}><LogIn className="mr-1 h-3.5 w-3.5" /> In</Button>}
-                  {v.checkedInAt && !v.checkedOutAt && <Button size="sm" variant="outline" onClick={() => { checkOut(v.id); toast.success("Checked out"); }}><LogOut className="mr-1 h-3.5 w-3.5" /> Out</Button>}
+                  {!v.checkedInAt && <Button size="sm" variant="outline" onClick={() => checkInMutation.mutate(v.id, { onSuccess: () => toast.success("Checked in") })}><LogIn className="mr-1 h-3.5 w-3.5" /> In</Button>}
+                  {v.checkedInAt && !v.checkedOutAt && <Button size="sm" variant="outline" onClick={() => checkOutMutation.mutate(v.id, { onSuccess: () => toast.success("Checked out") })}><LogOut className="mr-1 h-3.5 w-3.5" /> Out</Button>}
                   {v.checkedOutAt && <Badge variant="secondary">Done</Badge>}
                 </div>
               </div>
@@ -97,17 +93,17 @@ function Reception() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                // TODO: wire to API
-                addLead({
-                  name: walkin.name,
-                  email: `walkin+${Date.now()}@aztech.local`,
-                  phone: walkin.phone,
-                  source: "walk_in",
-                  branchId,
-                  message: "Walked in to reception",
-                });
-                toast.success("Walk-in added to pipeline");
-                setWalkin({ name: "", phone: "" });
+                createLeadMutation.mutate(
+                  {
+                    name: walkin.name,
+                    email: `walkin+${Date.now()}@aztech.local`,
+                    phone: walkin.phone,
+                    source: "walk_in",
+                    branchId,
+                    message: "Walked in to reception",
+                  },
+                  { onSuccess: () => { toast.success("Walk-in added to pipeline"); setWalkin({ name: "", phone: "" }); } },
+                );
               }}
               className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]"
             >

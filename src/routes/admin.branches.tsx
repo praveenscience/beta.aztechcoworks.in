@@ -11,8 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Badge } from "@/components/ui/badge";
 import { Plus, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { useAllBranches } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useAllBranches, useUpsertBranch } from "@/lib/queries";
 import type { Branch } from "@/types";
 import { unsplash } from "@/lib/format";
 
@@ -38,20 +37,18 @@ const EMPTY: Branch = {
 
 function AdminBranches() {
   const { data: branches = [] } = useAllBranches();
-  // TODO: wire upsertBranch to API mutation
-  const upsertBranch = useStore((s) => s.upsertBranch);
-  // TODO: wire archiveBranch to API mutation
-  const archiveBranch = useStore((s) => s.archiveBranch);
+  const upsertBranchMutation = useUpsertBranch();
   const [editing, setEditing] = useState<Branch | null>(null);
   const [open, setOpen] = useState(false);
 
   const save = (b: Branch) => {
     if (!b.id) b.id = `br_${Math.random().toString(36).slice(2, 7)}`;
     if (!b.slug) b.slug = b.name.toLowerCase().replace(/\s+/g, "-");
-    upsertBranch(b);
-    toast.success(`Saved ${b.name}`);
-    setOpen(false);
-    setEditing(null);
+    upsertBranchMutation.mutate(b, { onSuccess: () => { toast.success(`Saved ${b.name}`); setOpen(false); setEditing(null); } });
+  };
+
+  const archive = (b: Branch) => {
+    upsertBranchMutation.mutate({ ...b, isActive: false }, { onSuccess: () => toast.success("Archived") });
   };
 
   return (
@@ -88,7 +85,7 @@ function AdminBranches() {
                   </DialogTrigger>
                   <BranchDialog branch={editing} onSave={save} />
                 </Dialog>
-                <Button size="sm" variant="ghost" onClick={() => { archiveBranch(b.id); toast.success("Archived"); }}>
+                <Button size="sm" variant="ghost" onClick={() => archive(b)}>
                   <Archive className="h-3.5 w-3.5" />
                 </Button>
               </div>

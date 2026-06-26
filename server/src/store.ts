@@ -409,6 +409,8 @@ export const db = {
       const row = sqlite.prepare("SELECT * FROM branches WHERE id = ? OR slug = ?").get(id, id);
       return row ? parseRow<Branch>("branches", row) : undefined;
     },
+    insert: (b: Branch) => { insertRow("branches", "branches", b); return b; },
+    update: (id: string, patch: Partial<Branch>) => updateRow("branches", "branches", id, patch) as Branch | undefined,
   },
   seatInventory: {
     all: () => parseRows<SeatInventory>("seat_inventory", sqlite.prepare("SELECT * FROM seat_inventory").all()),
@@ -421,6 +423,9 @@ export const db = {
   plans: {
     all: () => getAllRows<Plan>("plans", "plans"),
     find: (id: string) => getRow<Plan>("plans", "plans", id),
+    insert: (p: Plan) => { insertRow("plans", "plans", p); return p; },
+    update: (id: string, patch: Partial<Plan>) => updateRow("plans", "plans", id, patch) as Plan | undefined,
+    delete: (id: string) => { sqlite.prepare("DELETE FROM plans WHERE id = ?").run(id); },
   },
 
   users: {
@@ -463,6 +468,7 @@ export const db = {
     all: () => getAllRows<Membership>("memberships", "memberships"),
     byUser: (id: string) => parseRows<Membership>("memberships", sqlite.prepare("SELECT * FROM memberships WHERE userId = ?").all(id)),
     insert: (m: Membership) => { insertRow("memberships", "memberships", m); return m; },
+    update: (id: string, patch: Partial<Membership>) => updateRow("memberships", "memberships", id, patch) as Membership | undefined,
   },
 
   bookings: {

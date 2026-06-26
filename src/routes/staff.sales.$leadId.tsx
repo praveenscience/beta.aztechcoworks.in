@@ -10,8 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, MessageCircle, Phone, Mail, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useLead, useUsers, useMe, usePlans, useTasks, useUpdateLead, useUpdateTask } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useLead, useUsers, useMe, useTasks, useUpdateLead, useUpdateTask, useCreateLeadActivity, useCreateTask } from "@/lib/queries";
 import type { LeadStage } from "@/types";
 import { stageLabels, inr, whatsappLink } from "@/lib/format";
 
@@ -32,10 +31,8 @@ function LeadDetail() {
   const tasks = allTasks.filter((t) => t.leadId === leadId);
   const updateLeadMutation = useUpdateLead();
   const updateTaskMutation = useUpdateTask();
-  // TODO: wire addLeadActivity to API — no endpoint yet
-  const addLeadActivity = useStore((s) => s.addLeadActivity);
-  // TODO: wire addTask to API — no endpoint yet
-  const addTask = useStore((s) => s.addTask);
+  const createActivityMutation = useCreateLeadActivity();
+  const createTaskMutation = useCreateTask();
 
   const [note, setNote] = useState("");
   const [newTask, setNewTask] = useState("");
@@ -109,10 +106,10 @@ function LeadDetail() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!note) return;
-                  // TODO: wire to API
-                  addLeadActivity({ leadId: lead.id, type: "note", description: note, actorId: me?.id });
-                  setNote("");
-                  toast.success("Note added");
+                  createActivityMutation.mutate(
+                    { leadId: lead.id, type: "note", description: note, actorId: me?.id },
+                    { onSuccess: () => { setNote(""); toast.success("Note added"); } },
+                  );
                 }}
                 className="mb-4 flex gap-2"
               >
@@ -178,15 +175,16 @@ function LeadDetail() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!newTask) return;
-                  // TODO: wire to API
-                  addTask({
-                    leadId: lead.id,
-                    assigneeId: lead.ownerId ?? me?.id ?? "u_sales",
-                    title: newTask,
-                    dueAt: new Date(Date.now() + 86400000).toISOString(),
-                    done: false,
-                  });
-                  setNewTask("");
+                  createTaskMutation.mutate(
+                    {
+                      leadId: lead.id,
+                      assigneeId: lead.ownerId ?? me?.id ?? "u_sales",
+                      title: newTask,
+                      dueAt: new Date(Date.now() + 86400000).toISOString(),
+                      done: false,
+                    },
+                    { onSuccess: () => setNewTask("") },
+                  );
                 }}
                 className="mb-3 flex gap-2"
               >

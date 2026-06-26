@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
-import { useMe, useBranches, useMyBookings, usePlans } from "@/lib/queries";
+import { useMe, useBranches, useMyBookings, useCreateBooking } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import { inr } from "@/lib/format";
 
@@ -23,8 +23,7 @@ function BookingsPage() {
   const branches = allBranches.filter((b) => b.isActive);
   const { data: bookings = [] } = useMyBookings();
   const rooms = useStore((s) => s.meetingRooms);
-  // TODO: wire createBooking to API mutation
-  const createBooking = useStore((s) => s.createBooking);
+  const createBookingMutation = useCreateBooking();
 
   const [branchId, setBranchId] = useState(me?.branchId ?? branches[0]?.id);
   const [roomId, setRoomId] = useState<string>("");
@@ -45,16 +44,18 @@ function BookingsPage() {
     }
     const startAt = new Date(`${date}T${start}:00`);
     const endAt = new Date(startAt.getTime() + hours * 3600 * 1000);
-    createBooking({
-      userId: me.id,
-      branchId: room.branchId,
-      resourceType: "meeting_room",
-      resourceId: room.id,
-      startAt: startAt.toISOString(),
-      endAt: endAt.toISOString(),
-      amount,
-    });
-    toast.success(`${room.name} booked. Payment of ${inr(Math.round(amount * 1.18))} processed (demo).`);
+    createBookingMutation.mutate(
+      {
+        userId: me.id,
+        branchId: room.branchId,
+        resourceType: "meeting_room",
+        resourceId: room.id,
+        startAt: startAt.toISOString(),
+        endAt: endAt.toISOString(),
+        amount,
+      },
+      { onSuccess: () => toast.success(`${room.name} booked. Payment of ${inr(Math.round(amount * 1.18))} processed (demo).`) },
+    );
   };
 
   return (
@@ -111,17 +112,18 @@ function BookingsPage() {
           <CardContent>
             <Button onClick={() => {
               if (!branchId) return;
-              // TODO: wire to API mutation
-              createBooking({
-                userId: me.id,
-                branchId,
-                resourceType: "day_pass",
-                resourceId: "day_pass",
-                startAt: new Date().toISOString(),
-                endAt: new Date(Date.now() + 86400000).toISOString(),
-                amount: 350,
-              });
-              toast.success("Day pass purchased. Show QR at reception.");
+              createBookingMutation.mutate(
+                {
+                  userId: me.id,
+                  branchId,
+                  resourceType: "day_pass",
+                  resourceId: "day_pass",
+                  startAt: new Date().toISOString(),
+                  endAt: new Date(Date.now() + 86400000).toISOString(),
+                  amount: 350,
+                },
+                { onSuccess: () => toast.success("Day pass purchased. Show QR at reception.") },
+              );
             }} className="w-full">Buy a day pass</Button>
           </CardContent>
         </Card>

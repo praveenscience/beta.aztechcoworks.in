@@ -67,6 +67,89 @@ export const taskPatchSchema = z.object({
   assigneeId: z.string().max(50).optional(),
 }).strict();
 
+export const taskCreateSchema = z.object({
+  leadId: z.string().max(50).optional(),
+  assigneeId: z.string().min(1).max(50),
+  title: z.string().min(1).max(300),
+  dueAt: z.string(),
+  done: z.boolean().default(false),
+});
+
+export const leadActivitySchema = z.object({
+  type: z.enum(["note", "stage_change", "email", "whatsapp", "call", "task"]),
+  description: z.string().min(1).max(2000),
+  actorId: z.string().max(50).optional(),
+});
+
+export const visitorCreateSchema = z.object({
+  hostUserId: z.string().min(1).max(50),
+  branchId: z.string().min(1).max(50),
+  name: z.string().min(2).max(100),
+  phone: phone,
+  purpose: z.string().min(1).max(100),
+  expectedAt: z.string(),
+});
+
+export const bookingCreateSchema = z.object({
+  userId: z.string().min(1).max(50),
+  branchId: z.string().min(1).max(50),
+  resourceType: z.enum(["meeting_room", "day_pass", "subscription"]),
+  resourceId: z.string().min(1).max(50),
+  startAt: z.string(),
+  endAt: z.string(),
+  amount: z.number().int().min(0),
+});
+
+export const membershipCreateSchema = z.object({
+  userId: z.string().min(1).max(50),
+  planId: z.string().min(1).max(50),
+  branchId: z.string().min(1).max(50),
+  seats: z.number().int().min(1).max(500),
+  startDate: z.string(),
+  endDate: z.string(),
+});
+
+export const branchUpsertSchema = z.object({
+  id: z.string().max(50).optional(),
+  slug: z.string().max(100).optional(),
+  name: z.string().min(2).max(200),
+  address: z.string().min(5).max(500),
+  city: z.string().min(2).max(100),
+  phone: phone,
+  hours: z.string().min(2).max(200),
+  amenities: z.array(z.string().max(100)),
+  totalSeats: z.number().int().min(0),
+  availableSeats: z.number().int().min(0),
+  isActive: z.boolean().default(true),
+  photo: z.string().max(500),
+  description: z.string().max(1000),
+});
+
+export const planUpsertSchema = z.object({
+  id: z.string().max(50).optional(),
+  name: z.string().min(2).max(100),
+  seatType: z.enum(["hot_desk", "dedicated", "cabin", "team_office", "enterprise"]),
+  basePrice: z.number().int().min(0),
+  gstRate: z.number().int().min(0).max(100),
+  description: z.string().max(500),
+  features: z.array(z.string().max(200)),
+});
+
+export const userCreateSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: email,
+  role: z.enum(["visitor", "member", "reception", "sales_exec", "sales_manager", "branch_manager", "finance", "marketing", "super_admin"]),
+  branchId: z.string().max(50).optional(),
+  phone: phone.optional(),
+});
+
+export const userPatchSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  role: z.enum(["visitor", "member", "reception", "sales_exec", "sales_manager", "branch_manager", "finance", "marketing", "super_admin"]).optional(),
+  branchId: z.string().max(50).nullable().optional(),
+  phone: phone.optional(),
+}).strict();
+
 // ─── Validation middleware ──────────────────────
 
 export function validate<T extends z.ZodType>(schema: T): RequestHandler {

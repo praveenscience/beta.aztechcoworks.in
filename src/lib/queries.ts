@@ -228,3 +228,129 @@ export function useAllBranches() {
     queryFn: () => api.get("/api/dashboard/all-branches"),
   });
 }
+
+// ─── Dashboard mutations ────────────────────────
+
+export function useCreateLeadActivity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ leadId, ...body }: { leadId: string; type: string; description: string; actorId?: string }) =>
+      api.post<LeadActivity>(`/api/dashboard/leads/${leadId}/activities`, body),
+    onSuccess: (_data, vars) => qc.invalidateQueries({ queryKey: ["dashboard", "leads", vars.leadId] }),
+  });
+}
+
+export function useCreateTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { leadId?: string; assigneeId: string; title: string; dueAt: string; done?: boolean }) =>
+      api.post<Task>("/api/dashboard/tasks", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "tasks"] }),
+  });
+}
+
+export function useCreateVisitor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { hostUserId: string; branchId: string; name: string; phone: string; purpose: string; expectedAt: string }) =>
+      api.post<Visitor>("/api/dashboard/visitors", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "visitors"] }),
+  });
+}
+
+export function useCheckInVisitor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.patch<Visitor>(`/api/dashboard/visitors/${id}/checkin`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "visitors"] }),
+  });
+}
+
+export function useCheckOutVisitor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.patch<Visitor>(`/api/dashboard/visitors/${id}/checkout`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "visitors"] }),
+  });
+}
+
+export function useCreateBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { userId: string; branchId: string; resourceType: string; resourceId: string; startAt: string; endAt: string; amount: number }) =>
+      api.post<Booking>("/api/dashboard/bookings", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "me", "bookings"] }),
+  });
+}
+
+export function useCreateMembership() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { userId: string; planId: string; branchId: string; seats: number; startDate: string; endDate: string }) =>
+      api.post<Membership>("/api/dashboard/memberships", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "me", "memberships"] }),
+  });
+}
+
+export function useCancelMembership() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.patch<Membership>(`/api/dashboard/memberships/${id}/cancel`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "me", "memberships"] }),
+  });
+}
+
+export function useUpsertBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Branch) => {
+      const isNew = !data.id || data.id.startsWith("br_") && data.id.length < 8;
+      return isNew
+        ? api.post<Branch>("/api/dashboard/branches", data)
+        : api.patch<Branch>(`/api/dashboard/branches/${data.id}`, data);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dashboard", "all-branches"] });
+      qc.invalidateQueries({ queryKey: ["branches"] });
+    },
+  });
+}
+
+export function useUpsertPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Plan) => {
+      const existing = qc.getQueryData<Plan[]>(["plans"])?.find((p) => p.id === data.id);
+      return existing
+        ? api.patch<Plan>(`/api/dashboard/plans/${data.id}`, data)
+        : api.post<Plan>("/api/dashboard/plans", data);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["plans"] }),
+  });
+}
+
+export function useDeletePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/dashboard/plans/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["plans"] }),
+  });
+}
+
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; email: string; role: string; branchId?: string; phone?: string }) =>
+      api.post<SafeUser>("/api/dashboard/users", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "users"] }),
+  });
+}
+
+export function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...patch }: { id: string; role?: string; branchId?: string; name?: string; phone?: string }) =>
+      api.patch<SafeUser>(`/api/dashboard/users/${id}`, patch),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "users"] }),
+  });
+}

@@ -52,6 +52,31 @@ const getRoutes: [RegExp, RouteHandler][] = [
 ];
 
 const postRoutes: [RegExp, RouteHandler][] = [
+  // Dashboard mutations
+  [/^\/api\/dashboard\/leads\/([^/]+)\/activities$/, (p, body: any) => ({
+    id: `la_mock_${Date.now()}`, leadId: p[0], ...body, createdAt: new Date().toISOString(),
+  })],
+  [/^\/api\/dashboard\/tasks$/, (_p, body: any) => ({
+    id: `tk_mock_${Date.now()}`, ...body,
+  })],
+  [/^\/api\/dashboard\/visitors$/, (_p, body: any) => ({
+    id: `vis_mock_${Date.now()}`, ...body, qrToken: Math.random().toString(36).slice(2, 8).toUpperCase(),
+  })],
+  [/^\/api\/dashboard\/bookings$/, (_p, body: any) => ({
+    id: `bk_mock_${Date.now()}`, ...body, status: "confirmed",
+  })],
+  [/^\/api\/dashboard\/memberships$/, (_p, body: any) => ({
+    id: `mb_mock_${Date.now()}`, ...body, status: "active",
+  })],
+  [/^\/api\/dashboard\/branches$/, (_p, body: any) => ({
+    ...body, id: body.id || `br_mock_${Date.now()}`, slug: body.slug || body.name?.toLowerCase().replace(/\s+/g, "-"),
+  })],
+  [/^\/api\/dashboard\/plans$/, (_p, body: any) => ({
+    ...body, id: body.id || `pl_mock_${Date.now()}`,
+  })],
+  [/^\/api\/dashboard\/users$/, (_p, body: any) => ({
+    id: `u_mock_${Date.now()}`, ...body, referralCode: "NEW", createdAt: new Date().toISOString(),
+  })],
   [/^\/api\/auth\/demo\/([^/]+)$/, (p) => {
     const user = mock.users.find((u) => u.id === p[0]);
     if (!user) throw { status: 404, message: "Unknown demo user" };
@@ -91,6 +116,16 @@ const patchRoutes: [RegExp, RouteHandler][] = [
     if (task) Object.assign(task, body);
     return task ?? { id: p[0], ...body };
   }],
+  [/^\/api\/dashboard\/visitors\/([^/]+)\/checkin$/, (p) => ({ id: p[0], checkedInAt: new Date().toISOString() })],
+  [/^\/api\/dashboard\/visitors\/([^/]+)\/checkout$/, (p) => ({ id: p[0], checkedOutAt: new Date().toISOString() })],
+  [/^\/api\/dashboard\/memberships\/([^/]+)\/cancel$/, (p) => ({ id: p[0], status: "cancelled" })],
+  [/^\/api\/dashboard\/branches\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
+  [/^\/api\/dashboard\/plans\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
+  [/^\/api\/dashboard\/users\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
+];
+
+const deleteRoutes: [RegExp, RouteHandler][] = [
+  [/^\/api\/dashboard\/plans\/([^/]+)$/, () => ({ ok: true })],
 ];
 
 function matchRoute(path: string, routes: [RegExp, RouteHandler][], body?: unknown): unknown {
@@ -119,6 +154,12 @@ export function mockPost<T>(path: string, body?: unknown): T {
 
 export function mockPatch<T>(path: string, body?: unknown): T {
   const result = matchRoute(path, patchRoutes, body);
+  if (result === undefined) return {} as T;
+  return result as T;
+}
+
+export function mockDelete<T>(path: string): T {
+  const result = matchRoute(path, deleteRoutes);
   if (result === undefined) return {} as T;
   return result as T;
 }
