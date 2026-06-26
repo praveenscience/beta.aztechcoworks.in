@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
-import { useMe, useBranches, useMyBookings, useCreateBooking, useMeetingRooms } from "@/lib/queries";
+import { useMe, useBranches, useMyBookings, useCreateBooking, useCreateInvoice, useMeetingRooms } from "@/lib/queries";
 import { inr } from "@/lib/format";
+import { payInvoice } from "@/lib/razorpay";
 
 export const Route = createFileRoute("/dashboard/bookings")({
   component: BookingsPage,
@@ -23,6 +24,8 @@ function BookingsPage() {
   const { data: bookings = [] } = useMyBookings();
   const { data: rooms = [] } = useMeetingRooms();
   const createBookingMutation = useCreateBooking();
+  const createInvoiceMutation = useCreateInvoice();
+  const [paying, setPaying] = useState(false);
 
   const [branchId, setBranchId] = useState(me?.branchId ?? branches[0]?.id);
   const [roomId, setRoomId] = useState<string>("");
@@ -36,25 +39,55 @@ function BookingsPage() {
 
   if (!me) return null;
 
-  const book = () => {
+  const book = async () => {
     if (!room) {
       toast.error("Pick a room first");
       return;
     }
     const startAt = new Date(`${date}T${start}:00`);
     const endAt = new Date(startAt.getTime() + hours * 3600 * 1000);
-    createBookingMutation.mutate(
-      {
-        userId: me.id,
-        branchId: room.branchId,
-        resourceType: "meeting_room",
-        resourceId: room.id,
-        startAt: startAt.toISOString(),
-        endAt: endAt.toISOString(),
-        amount,
-      },
-      { onSuccess: () => toast.success(`${room.name} booked. Payment of ${inr(Math.round(amount * 1.18))} processed (demo).`) },
-    );
+    const subtotal = amount;
+    const gst = Math.round(subtotal * 0.18);
+    const total = subtotal + gst;
+
+    setPaying(true);
+    try {
+      // 1. Create booking
+      const booking = await new Promise<any>((resolve, reject) => {
+        createBookingMutation.mutate(
+          {
+            userId: me.id,
+            branchId: room.branchId,
+            resourceType: "meeting_room",
+            resourceId: room.id,
+            startAt: startAt.toISOString(),
+            endAt: endAt.toISOString(),
+            amount: subtotal,
+          },
+          { onSuccess: resolve, onError: reject },
+        );
+      });
+
+      // 2. Create invoice
+      const invoice = await new Promise<any>((resolve, reject) => {
+        createInvoiceMutation.mutate(
+          { userId: me.id, bookingId: booking.id, subtotal, gst, total },
+          { onSuccess: resolve, onError: reject },
+        );
+      });
+
+      // 3. Pay via Razorpay
+      await payInvoice(invoice.id, { name: me.name, email: me.email, phone: me.phone });
+      toast.success(`${room.name} booked and paid! ${inr(total)} including GST.`);
+    } catch (err: any) {
+      if (err.message === "Payment cancelled") {
+        toast.info("Payment cancelled. Your booking is held — pay from Invoices to confirm.");
+      } else {
+        toast.error(err.message || "Booking failed");
+      }
+    } finally {
+      setPaying(false);
+    }
   };
 
   return (
@@ -97,8 +130,8 @@ function BookingsPage() {
                 <div className="mt-1 text-2xl font-bold">{inr(Math.round(amount * 1.18))}</div>
               </div>
             </div>
-            <Button onClick={book} className="mt-5" size="lg">
-              <CreditCard className="mr-1.5 h-4 w-4" /> Confirm & pay
+            <Button onClick={book} className="mt-5" size="lg" disabled={paying}>
+              <CreditCard className="mr-1.5 h-4 w-4" /> {paying ? "Processing..." : "Confirm & pay"}
             </Button>
           </CardContent>
         </Card>
@@ -109,21 +142,38 @@ function BookingsPage() {
             <CardDescription>Drop in at any branch for ₹350 + GST.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => {
+            <Button onClick={async () => {
               if (!branchId) return;
-              createBookingMutation.mutate(
-                {
-                  userId: me.id,
-                  branchId,
-                  resourceType: "day_pass",
-                  resourceId: "day_pass",
-                  startAt: new Date().toISOString(),
-                  endAt: new Date(Date.now() + 86400000).toISOString(),
-                  amount: 350,
-                },
-                { onSuccess: () => toast.success("Day pass purchased. Show QR at reception.") },
-              );
-            }} className="w-full">Buy a day pass</Button>
+              setPaying(true);
+              try {
+                const booking = await new Promise<any>((resolve, reject) => {
+                  createBookingMutation.mutate(
+                    {
+                      userId: me.id,
+                      branchId,
+                      resourceType: "day_pass",
+                      resourceId: "day_pass",
+                      startAt: new Date().toISOString(),
+                      endAt: new Date(Date.now() + 86400000).toISOString(),
+                      amount: 350,
+                    },
+                    { onSuccess: resolve, onError: reject },
+                  );
+                });
+                const invoice = await new Promise<any>((resolve, reject) => {
+                  createInvoiceMutation.mutate(
+                    { userId: me.id, bookingId: booking.id, subtotal: 350, gst: 63, total: 413 },
+                    { onSuccess: resolve, onError: reject },
+                  );
+                });
+                await payInvoice(invoice.id, { name: me.name, email: me.email, phone: me.phone });
+                toast.success("Day pass purchased! Show this at reception.");
+              } catch (err: any) {
+                if (err.message !== "Payment cancelled") toast.error(err.message || "Purchase failed");
+              } finally {
+                setPaying(false);
+              }
+            }} className="w-full" disabled={paying}>{paying ? "Processing..." : "Buy a day pass"}</Button>
           </CardContent>
         </Card>
       </div>

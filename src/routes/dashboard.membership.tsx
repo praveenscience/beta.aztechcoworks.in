@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useMe, useMyMemberships, usePlans, useBranches, useCreateMembership, useCancelMembership } from "@/lib/queries";
+import { useMe, useMyMemberships, usePlans, useBranches, useCreateMembership, useCancelMembership, useCreateInvoice } from "@/lib/queries";
 import { inr } from "@/lib/format";
+import { payInvoice } from "@/lib/razorpay";
 
 export const Route = createFileRoute("/dashboard/membership")({
   component: MembershipPage,
@@ -23,6 +24,8 @@ function MembershipPage() {
   const { data: memberships = [] } = useMyMemberships();
   const createMembershipMutation = useCreateMembership();
   const cancelMembershipMutation = useCancelMembership();
+  const createInvoiceMutation = useCreateInvoice();
+  const [paying, setPaying] = useState(false);
 
   const [planId, setPlanId] = useState(plans[1]?.id);
   const [branchId, setBranchId] = useState(branches[0]?.id);
@@ -31,25 +34,50 @@ function MembershipPage() {
   if (!me) return null;
   const active = memberships.find((m) => m.status === "active");
 
-  const subscribe = () => {
+  const subscribe = async () => {
     const plan = plans.find((p) => p.id === planId);
     if (!plan || !branchId) return;
-    createMembershipMutation.mutate(
-      {
-        userId: me.id,
-        planId,
-        branchId,
-        seats,
-        startDate: new Date().toISOString().slice(0, 10),
-        endDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-      },
-      {
-        onSuccess: () => {
-          const total = Math.round(plan.basePrice * seats * 1.18);
-          toast.success(`Membership activated! ${inr(total)} charged (demo).`);
-        },
-      },
-    );
+    const subtotal = plan.basePrice * seats;
+    const gst = Math.round(subtotal * 0.18);
+    const total = subtotal + gst;
+
+    setPaying(true);
+    try {
+      // 1. Create membership (pending until paid)
+      const membership = await new Promise<any>((resolve, reject) => {
+        createMembershipMutation.mutate(
+          {
+            userId: me.id,
+            planId,
+            branchId,
+            seats,
+            startDate: new Date().toISOString().slice(0, 10),
+            endDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+          },
+          { onSuccess: resolve, onError: reject },
+        );
+      });
+
+      // 2. Create invoice
+      const invoice = await new Promise<any>((resolve, reject) => {
+        createInvoiceMutation.mutate(
+          { userId: me.id, membershipId: membership.id, subtotal, gst, total },
+          { onSuccess: resolve, onError: reject },
+        );
+      });
+
+      // 3. Pay via Razorpay
+      await payInvoice(invoice.id, { name: me.name, email: me.email, phone: me.phone });
+      toast.success(`Membership activated! ${inr(total)} paid including GST.`);
+    } catch (err: any) {
+      if (err.message === "Payment cancelled") {
+        toast.info("Payment cancelled. Complete payment from your Invoices page to activate.");
+      } else {
+        toast.error(err.message || "Subscription failed");
+      }
+    } finally {
+      setPaying(false);
+    }
   };
 
   return (
@@ -105,7 +133,9 @@ function MembershipPage() {
               </div>
               <div><Label>Seats</Label><Input type="number" min={1} value={seats} onChange={(e) => setSeats(Number(e.target.value))} /></div>
             </div>
-            <Button onClick={subscribe} className="mt-5" size="lg">Subscribe</Button>
+            <Button onClick={subscribe} className="mt-5" size="lg" disabled={paying}>
+              {paying ? "Processing payment..." : "Subscribe & pay"}
+            </Button>
           </CardContent>
         </Card>
       )}

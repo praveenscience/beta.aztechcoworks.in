@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth.routes.js";
 import publicRoutes from "./routes/public.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -68,6 +69,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api", publicRoutes(publicFormLimiter));
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // ─── Start ──────────────────────────────────────
 

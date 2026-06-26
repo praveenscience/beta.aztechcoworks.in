@@ -1,7 +1,9 @@
 import { Router } from "express";
+import { randomBytes } from "node:crypto";
 import { db, hashPassword, verifyPassword } from "../store.js";
 import { uid } from "../uid.js";
-import { validate, loginSchema, registerSchema } from "../validation.js";
+import { validate, loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from "../validation.js";
+import { sendWelcomeEmail, sendPasswordResetEmail } from "../email.js";
 import type { User } from "../types.js";
 
 const router = Router();
@@ -44,6 +46,7 @@ router.post("/register", validate(registerSchema), (req, res) => {
   db.users.insert(user);
   req.session.userId = user.id;
   const { passwordHash: _, ...safe } = user;
+  sendWelcomeEmail(user.email, user.name).catch(() => {});
   res.status(201).json(safe);
 });
 
@@ -67,6 +70,58 @@ router.post("/logout", (req, res) => {
   req.session.destroy(() => {
     res.json({ ok: true });
   });
+});
+
+// POST /api/auth/forgot-password — send reset link
+router.post("/forgot-password", validate(forgotPasswordSchema), (req, res) => {
+  const { email } = req.body;
+  const user = db.users.findByEmail(email);
+
+  // Always return 200 to avoid email enumeration
+  if (!user) {
+    res.json({ ok: true });
+    return;
+  }
+
+  // Clean up expired tokens
+  db.passwordResetTokens.deleteExpired();
+
+  // Generate secure token
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+  db.passwordResetTokens.insert(token, user.id, expiresAt);
+  sendPasswordResetEmail(user.email, user.name, token).catch(() => {});
+
+  res.json({ ok: true });
+});
+
+// POST /api/auth/reset-password — verify token and update password
+router.post("/reset-password", validate(resetPasswordSchema), (req, res) => {
+  const { token, password } = req.body;
+
+  const record = db.passwordResetTokens.find(token);
+  if (!record) {
+    res.status(400).json({ error: "Invalid or expired reset token" });
+    return;
+  }
+
+  if (new Date(record.expiresAt) < new Date()) {
+    db.passwordResetTokens.delete(token);
+    res.status(400).json({ error: "Reset token has expired" });
+    return;
+  }
+
+  const user = db.users.find(record.userId);
+  if (!user) {
+    res.status(400).json({ error: "User not found" });
+    return;
+  }
+
+  db.users.updatePassword(user.id, hashPassword(password));
+  db.passwordResetTokens.delete(token);
+
+  res.json({ ok: true });
 });
 
 // POST /api/auth/demo/:userId — quick demo sign-in (dev only, no password)

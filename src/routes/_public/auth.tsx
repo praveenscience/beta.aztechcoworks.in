@@ -118,6 +118,11 @@ function AuthPage() {
               <Button className="w-full" type="submit" size="lg" disabled={login.isPending || register.isPending}>
                 {login.isPending || register.isPending ? "Signing in..." : "Sign in / Create account"}
               </Button>
+              <div className="mt-2 text-right">
+                <Link to="/auth/forgot" className="text-sm text-muted-foreground hover:text-accent">
+                  Forgot password?
+                </Link>
+              </div>
             </form>
             <div className="mt-6 rounded-lg bg-secondary/60 p-4 text-xs text-muted-foreground">
               <strong className="text-foreground">Note:</strong> This connects to the local API server at <code>localhost:3001</code>.

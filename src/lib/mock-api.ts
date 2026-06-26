@@ -53,6 +53,8 @@ const getRoutes: [RegExp, RouteHandler][] = [
   [/^\/api\/dashboard\/all-memberships$/, () => mock.memberships],
   [/^\/api\/dashboard\/all-bookings$/, () => []],
   [/^\/api\/dashboard\/all-branches$/, () => mock.branches],
+  [/^\/api\/payments\/key$/, () => ({ key: "" })],
+  [/^\/api\/payments\/history$/, () => []],
 ];
 
 const postRoutes: [RegExp, RouteHandler][] = [
@@ -102,6 +104,16 @@ const postRoutes: [RegExp, RouteHandler][] = [
     currentUser = null;
     return {};
   }],
+  [/^\/api\/auth\/forgot-password$/, () => ({ ok: true })],
+  [/^\/api\/auth\/reset-password$/, () => ({ ok: true })],
+  [/^\/api\/payments\/create-order$/, (_p, body: any) => ({
+    orderId: `order_demo_${Date.now()}`, amount: 10000, currency: "INR", paymentId: `pay_mock_${Date.now()}`, demo: true,
+  })],
+  [/^\/api\/payments\/verify$/, () => ({ verified: true, paymentId: `pay_mock_${Date.now()}` })],
+  [/^\/api\/dashboard\/invoices$/, (_p, body: any) => ({
+    id: `inv_mock_${Date.now()}`, number: `AZTECH-2026-${String(Date.now()).slice(-4)}`,
+    ...body, status: "pending", issuedAt: new Date().toISOString(),
+  })],
   [/^\/api\/leads$/, (_p, body: any) => ({ id: "ld_mock", ...body, score: 50, stage: "new", createdAt: new Date().toISOString() })],
   [/^\/api\/site-visits$/, (_p, body: any) => ({
     lead: { id: "ld_mock", name: body?.name, email: body?.email, phone: body?.phone, score: 50, stage: "new", source: "website", createdAt: new Date().toISOString() },

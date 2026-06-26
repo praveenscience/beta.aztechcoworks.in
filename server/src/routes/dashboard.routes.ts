@@ -146,6 +146,14 @@ router.patch("/visitors/:id/checkout", (req, res) => {
 // ─── Bookings ───────────────────────────────────
 
 router.post("/bookings", validate(bookingCreateSchema), (req, res) => {
+  const { resourceId, startAt, endAt } = req.body;
+
+  // Check for booking conflicts
+  if (db.bookings.hasConflict(resourceId, startAt, endAt)) {
+    res.status(409).json({ error: "This room is already booked for that time. Please choose a different slot." });
+    return;
+  }
+
   const booking: Booking = {
     id: uid("bk"),
     ...req.body,
@@ -301,6 +309,31 @@ router.get("/all-bookings", (req, res) => {
 });
 
 // ─── Invoices (finance/admin) ───────────────────
+
+router.post("/invoices", (req, res) => {
+  const user = (req as any)._user;
+  const { userId, bookingId, membershipId, subtotal, gst, total } = req.body;
+
+  // Count existing invoices to generate number
+  const allInvoices = db.invoices.all();
+  const num = String(allInvoices.length + 1).padStart(4, "0");
+  const year = new Date().getFullYear();
+
+  const invoice = {
+    id: uid("inv"),
+    number: `AZTECH-${year}-${num}`,
+    userId: userId || user.id,
+    bookingId,
+    membershipId,
+    subtotal,
+    gst,
+    total,
+    status: "pending" as const,
+    issuedAt: new Date().toISOString(),
+  };
+  db.invoices.insert(invoice);
+  res.status(201).json(invoice);
+});
 
 router.get("/invoices", (req, res) => {
   const user = (req as any)._user;

@@ -2,6 +2,7 @@ import { Router, type RequestHandler } from "express";
 import { db } from "../store.js";
 import { uid } from "../uid.js";
 import { validate, leadCaptureSchema, siteVisitSchema } from "../validation.js";
+import { sendSiteVisitConfirmationEmail } from "../email.js";
 import type { Lead } from "../types.js";
 
 export default function publicRoutes(formLimiter: RequestHandler) {
@@ -88,6 +89,16 @@ export default function publicRoutes(formLimiter: RequestHandler) {
       mode: mode || "self_serve" as const,
     };
     db.siteVisits.insert(visit);
+
+    // Send confirmation email
+    const branch = db.branches.find(branchId);
+    if (branch) {
+      sendSiteVisitConfirmationEmail(email, name, {
+        branchName: branch.name,
+        branchAddress: branch.address,
+        scheduledAt: scheduledAt || "To be confirmed",
+      }).catch(() => {});
+    }
 
     res.status(201).json({ lead, visit });
   });

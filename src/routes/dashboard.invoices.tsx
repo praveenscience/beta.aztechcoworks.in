@@ -1,19 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { CreditCard, Download } from "lucide-react";
 import { toast } from "sonner";
-import { useMyInvoices } from "@/lib/queries";
+import { useMe, useMyInvoices } from "@/lib/queries";
 import { inr } from "@/lib/format";
+import { payInvoice } from "@/lib/razorpay";
 
 export const Route = createFileRoute("/dashboard/invoices")({
   component: InvoicesPage,
 });
 
 function InvoicesPage() {
+  const { data: me } = useMe();
   const { data: invoices = [] } = useMyInvoices();
+  const [payingId, setPayingId] = useState<string | null>(null);
+
+  const handlePay = async (invoiceId: string) => {
+    if (!me) return;
+    setPayingId(invoiceId);
+    try {
+      await payInvoice(invoiceId, { name: me.name, email: me.email, phone: me.phone });
+      toast.success("Payment successful!");
+    } catch (err: any) {
+      if (err.message !== "Payment cancelled") toast.error(err.message || "Payment failed");
+    } finally {
+      setPayingId(null);
+    }
+  };
 
   return (
     <>
@@ -37,7 +54,13 @@ function InvoicesPage() {
                       {i.status}
                     </Badge>
                   </td>
-                  <td>
+                  <td className="space-x-1">
+                    {i.status === "pending" && (
+                      <Button size="sm" onClick={() => handlePay(i.id)} disabled={payingId === i.id}>
+                        <CreditCard className="mr-1 h-3 w-3" />
+                        {payingId === i.id ? "Paying..." : "Pay now"}
+                      </Button>
+                    )}
                     <Button size="sm" variant="ghost" onClick={() => toast.success(`Downloading ${i.number}.pdf (demo)`)}>
                       <Download className="h-4 w-4" />
                     </Button>

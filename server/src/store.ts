@@ -210,6 +210,24 @@ sqlite.exec(`
     avatar TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    token TEXT PRIMARY KEY,
+    userId TEXT NOT NULL REFERENCES users(id),
+    expiresAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS payments (
+    id TEXT PRIMARY KEY,
+    orderId TEXT UNIQUE NOT NULL,
+    razorpayPaymentId TEXT,
+    razorpaySignature TEXT,
+    invoiceId TEXT REFERENCES invoices(id),
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'INR',
+    status TEXT NOT NULL DEFAULT 'created',
+    createdAt TEXT NOT NULL
+  );
+
   -- ─── Indexes ────────────────────────────────────
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
@@ -223,6 +241,9 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_visitors_hostUserId ON visitors(hostUserId);
   CREATE INDEX IF NOT EXISTS idx_lead_activities_leadId ON lead_activities(leadId);
   CREATE INDEX IF NOT EXISTS idx_tasks_assigneeId ON tasks(assigneeId);
+  CREATE INDEX IF NOT EXISTS idx_payments_orderId ON payments(orderId);
+  CREATE INDEX IF NOT EXISTS idx_payments_invoiceId ON payments(invoiceId);
+  CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_userId ON password_reset_tokens(userId);
 `);
 
 // ─── Helpers ────────────────────────────────────
@@ -437,6 +458,9 @@ export const db = {
     },
     insert: (u: User) => { insertRow("users", "users", u); return u; },
     update: (id: string, patch: Partial<User>) => updateRow("users", "users", id, patch) as User | undefined,
+    updatePassword: (id: string, hash: string) => {
+      sqlite.prepare("UPDATE users SET passwordHash = ? WHERE id = ?").run(hash, id);
+    },
   },
 
   leads: {
@@ -475,12 +499,20 @@ export const db = {
     all: () => getAllRows<Booking>("bookings", "bookings"),
     byUser: (id: string) => parseRows<Booking>("bookings", sqlite.prepare("SELECT * FROM bookings WHERE userId = ?").all(id)),
     insert: (b: Booking) => { insertRow("bookings", "bookings", b); return b; },
+    hasConflict: (resourceId: string, startAt: string, endAt: string) => {
+      const row = sqlite.prepare(
+        "SELECT id FROM bookings WHERE resourceId = ? AND status = 'confirmed' AND startAt < ? AND endAt > ?"
+      ).get(resourceId, endAt, startAt);
+      return !!row;
+    },
   },
 
   invoices: {
     all: () => getAllRows<Invoice>("invoices", "invoices"),
     byUser: (id: string) => parseRows<Invoice>("invoices", sqlite.prepare("SELECT * FROM invoices WHERE userId = ?").all(id)),
+    find: (id: string) => getRow<Invoice>("invoices", "invoices", id),
     insert: (inv: Invoice) => { insertRow("invoices", "invoices", inv); return inv; },
+    update: (id: string, patch: Partial<Invoice>) => updateRow("invoices", "invoices", id, patch) as Invoice | undefined,
   },
 
   visitors: {
@@ -499,5 +531,36 @@ export const db = {
 
   testimonials: {
     all: () => getAllRows<Testimonial>("testimonials", "testimonials"),
+  },
+
+  passwordResetTokens: {
+    insert: (token: string, userId: string, expiresAt: string) => {
+      sqlite.prepare("DELETE FROM password_reset_tokens WHERE userId = ?").run(userId);
+      sqlite.prepare("INSERT INTO password_reset_tokens (token, userId, expiresAt) VALUES (?, ?, ?)").run(token, userId, expiresAt);
+    },
+    find: (token: string) => {
+      return sqlite.prepare("SELECT * FROM password_reset_tokens WHERE token = ?").get(token) as { token: string; userId: string; expiresAt: string } | undefined;
+    },
+    delete: (token: string) => {
+      sqlite.prepare("DELETE FROM password_reset_tokens WHERE token = ?").run(token);
+    },
+    deleteExpired: () => {
+      sqlite.prepare("DELETE FROM password_reset_tokens WHERE expiresAt < ?").run(new Date().toISOString());
+    },
+  },
+
+  payments: {
+    all: () => getAllRows<any>("payments", "payments"),
+    find: (id: string) => getRow<any>("payments", "payments", id),
+    findByOrderId: (orderId: string) => {
+      const row = sqlite.prepare("SELECT * FROM payments WHERE orderId = ?").get(orderId);
+      return row ? parseRow<any>("payments", row) : undefined;
+    },
+    byInvoice: (invoiceId: string) => {
+      const row = sqlite.prepare("SELECT * FROM payments WHERE invoiceId = ?").get(invoiceId);
+      return row ? parseRow<any>("payments", row) : undefined;
+    },
+    insert: (p: any) => { insertRow("payments", "payments", p); return p; },
+    update: (id: string, patch: Record<string, any>) => updateRow("payments", "payments", id, patch),
   },
 };

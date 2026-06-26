@@ -20,6 +20,15 @@ export const registerSchema = z.object({
   phone: phone.optional(),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: email,
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8).max(128),
+});
+
 // ─── Public form schemas ────────────────────────
 
 export const leadCaptureSchema = z.object({

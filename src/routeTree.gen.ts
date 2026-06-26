@@ -41,6 +41,8 @@ import { Route as PublicBlogIndexRouteImport } from './routes/_public/blog.index
 import { Route as StaffSalesLeadIdRouteImport } from './routes/staff.sales.$leadId'
 import { Route as PublicBranchesSlugRouteImport } from './routes/_public/branches.$slug'
 import { Route as PublicBlogSlugRouteImport } from './routes/_public/blog.$slug'
+import { Route as PublicAuthResetRouteImport } from './routes/_public/auth.reset'
+import { Route as PublicAuthForgotRouteImport } from './routes/_public/auth.forgot'
 
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
@@ -201,13 +203,23 @@ const PublicBlogSlugRoute = PublicBlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => PublicRoute,
 } as any)
+const PublicAuthResetRoute = PublicAuthResetRouteImport.update({
+  id: '/reset',
+  path: '/reset',
+  getParentRoute: () => PublicAuthRoute,
+} as any)
+const PublicAuthForgotRoute = PublicAuthForgotRouteImport.update({
+  id: '/forgot',
+  path: '/forgot',
+  getParentRoute: () => PublicAuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
-  '/auth': typeof PublicAuthRoute
+  '/auth': typeof PublicAuthRouteWithChildren
   '/book-visit': typeof PublicBookVisitRoute
   '/corporate': typeof PublicCorporateRoute
   '/pricing': typeof PublicPricingRoute
@@ -228,6 +240,8 @@ export interface FileRoutesByFullPath {
   '/staff/marketing': typeof StaffMarketingRoute
   '/staff/reception': typeof StaffReceptionRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/auth/forgot': typeof PublicAuthForgotRoute
+  '/auth/reset': typeof PublicAuthResetRoute
   '/blog/$slug': typeof PublicBlogSlugRoute
   '/branches/$slug': typeof PublicBranchesSlugRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
@@ -238,7 +252,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/admin': typeof AdminRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
-  '/auth': typeof PublicAuthRoute
+  '/auth': typeof PublicAuthRouteWithChildren
   '/book-visit': typeof PublicBookVisitRoute
   '/corporate': typeof PublicCorporateRoute
   '/pricing': typeof PublicPricingRoute
@@ -260,6 +274,8 @@ export interface FileRoutesByTo {
   '/staff/reception': typeof StaffReceptionRoute
   '/': typeof PublicIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/auth/forgot': typeof PublicAuthForgotRoute
+  '/auth/reset': typeof PublicAuthResetRoute
   '/blog/$slug': typeof PublicBlogSlugRoute
   '/branches/$slug': typeof PublicBranchesSlugRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
@@ -273,7 +289,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
-  '/_public/auth': typeof PublicAuthRoute
+  '/_public/auth': typeof PublicAuthRouteWithChildren
   '/_public/book-visit': typeof PublicBookVisitRoute
   '/_public/corporate': typeof PublicCorporateRoute
   '/_public/pricing': typeof PublicPricingRoute
@@ -295,6 +311,8 @@ export interface FileRoutesById {
   '/staff/reception': typeof StaffReceptionRoute
   '/_public/': typeof PublicIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/_public/auth/forgot': typeof PublicAuthForgotRoute
+  '/_public/auth/reset': typeof PublicAuthResetRoute
   '/_public/blog/$slug': typeof PublicBlogSlugRoute
   '/_public/branches/$slug': typeof PublicBranchesSlugRoute
   '/staff/sales/$leadId': typeof StaffSalesLeadIdRoute
@@ -330,6 +348,8 @@ export interface FileRouteTypes {
     | '/staff/marketing'
     | '/staff/reception'
     | '/dashboard/'
+    | '/auth/forgot'
+    | '/auth/reset'
     | '/blog/$slug'
     | '/branches/$slug'
     | '/staff/sales/$leadId'
@@ -362,6 +382,8 @@ export interface FileRouteTypes {
     | '/staff/reception'
     | '/'
     | '/dashboard'
+    | '/auth/forgot'
+    | '/auth/reset'
     | '/blog/$slug'
     | '/branches/$slug'
     | '/staff/sales/$leadId'
@@ -396,6 +418,8 @@ export interface FileRouteTypes {
     | '/staff/reception'
     | '/_public/'
     | '/dashboard/'
+    | '/_public/auth/forgot'
+    | '/_public/auth/reset'
     | '/_public/blog/$slug'
     | '/_public/branches/$slug'
     | '/staff/sales/$leadId'
@@ -637,11 +661,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicBlogSlugRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_public/auth/reset': {
+      id: '/_public/auth/reset'
+      path: '/reset'
+      fullPath: '/auth/reset'
+      preLoaderRoute: typeof PublicAuthResetRouteImport
+      parentRoute: typeof PublicAuthRoute
+    }
+    '/_public/auth/forgot': {
+      id: '/_public/auth/forgot'
+      path: '/forgot'
+      fullPath: '/auth/forgot'
+      preLoaderRoute: typeof PublicAuthForgotRouteImport
+      parentRoute: typeof PublicAuthRoute
+    }
   }
 }
 
+interface PublicAuthRouteChildren {
+  PublicAuthForgotRoute: typeof PublicAuthForgotRoute
+  PublicAuthResetRoute: typeof PublicAuthResetRoute
+}
+
+const PublicAuthRouteChildren: PublicAuthRouteChildren = {
+  PublicAuthForgotRoute: PublicAuthForgotRoute,
+  PublicAuthResetRoute: PublicAuthResetRoute,
+}
+
+const PublicAuthRouteWithChildren = PublicAuthRoute._addFileChildren(
+  PublicAuthRouteChildren,
+)
+
 interface PublicRouteChildren {
-  PublicAuthRoute: typeof PublicAuthRoute
+  PublicAuthRoute: typeof PublicAuthRouteWithChildren
   PublicBookVisitRoute: typeof PublicBookVisitRoute
   PublicCorporateRoute: typeof PublicCorporateRoute
   PublicPricingRoute: typeof PublicPricingRoute
@@ -653,7 +705,7 @@ interface PublicRouteChildren {
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
-  PublicAuthRoute: PublicAuthRoute,
+  PublicAuthRoute: PublicAuthRouteWithChildren,
   PublicBookVisitRoute: PublicBookVisitRoute,
   PublicCorporateRoute: PublicCorporateRoute,
   PublicPricingRoute: PublicPricingRoute,

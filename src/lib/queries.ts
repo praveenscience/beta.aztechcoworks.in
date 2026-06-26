@@ -116,6 +116,22 @@ export function useTestimonials() {
   });
 }
 
+// ─── Auth mutations ─────────────────────────────
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (data: { email: string }) =>
+      api.post<{ ok: boolean }>("/api/auth/forgot-password", data),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (data: { token: string; password: string }) =>
+      api.post<{ ok: boolean }>("/api/auth/reset-password", data),
+  });
+}
+
 // ─── Public mutations ───────────────────────────
 
 export function useCreateLead() {
@@ -380,5 +396,14 @@ export function useUpdateUser() {
     mutationFn: ({ id, ...patch }: { id: string; role?: string; branchId?: string; name?: string; phone?: string }) =>
       api.patch<SafeUser>(`/api/dashboard/users/${id}`, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "users"] }),
+  });
+}
+
+export function useCreateInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { userId: string; bookingId?: string; membershipId?: string; subtotal: number; gst: number; total: number }) =>
+      api.post<Invoice>("/api/dashboard/invoices", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "me", "invoices"] }),
   });
 }
