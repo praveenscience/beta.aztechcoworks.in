@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /staff
+Disallow: /admin
+
+Sitemap: https://aztechcoworks.in/sitemap.xml

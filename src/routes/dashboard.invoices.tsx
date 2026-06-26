@@ -10,6 +10,8 @@ import { useMe, useMyInvoices } from "@/lib/queries";
 import { inr } from "@/lib/format";
 import { payInvoice } from "@/lib/razorpay";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 export const Route = createFileRoute("/dashboard/invoices")({
   component: InvoicesPage,
 });
@@ -61,8 +63,10 @@ function InvoicesPage() {
                         {payingId === i.id ? "Paying..." : "Pay now"}
                       </Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => toast.success(`Downloading ${i.number}.pdf (demo)`)}>
-                      <Download className="h-4 w-4" />
+                    <Button size="sm" variant="ghost" asChild>
+                      <a href={`${API_BASE}/api/dashboard/invoices/${i.id}/pdf`} download={`${i.number}.pdf`}>
+                        <Download className="h-4 w-4" />
+                      </a>
                     </Button>
                   </td>
                 </tr>

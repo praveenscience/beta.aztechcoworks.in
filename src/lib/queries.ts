@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
+import { trackEvent } from "./analytics";
 import type {
   User, Branch, SeatInventory, MeetingRoom, Plan,
   Lead, LeadActivity, Task, SiteVisit, Membership,
@@ -40,7 +41,10 @@ export function useRegister() {
   return useMutation({
     mutationFn: (data: { name: string; email: string; password: string; phone?: string }) =>
       api.post<SafeUser>("/api/auth/register", data),
-    onSuccess: (user) => qc.setQueryData(["me"], user),
+    onSuccess: (user) => {
+      qc.setQueryData(["me"], user);
+      trackEvent("sign_up", { method: "email" });
+    },
   });
 }
 
@@ -138,6 +142,7 @@ export function useCreateLead() {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) =>
       api.post<Lead>("/api/leads", data),
+    onSuccess: () => trackEvent("lead_created", { source: "website" }),
   });
 }
 
@@ -145,6 +150,7 @@ export function useBookSiteVisit() {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) =>
       api.post<{ lead: Lead; visit: SiteVisit }>("/api/site-visits", data),
+    onSuccess: () => trackEvent("site_visit_booked"),
   });
 }
 

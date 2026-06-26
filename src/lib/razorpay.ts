@@ -1,6 +1,7 @@
 // Razorpay checkout integration for the frontend.
 
 import { api } from "./api";
+import { trackEvent } from "./analytics";
 
 declare global {
   interface Window {
@@ -30,11 +31,13 @@ export async function payInvoice(
 
   // 2. Demo mode — skip Razorpay modal
   if (order.demo) {
-    return api.post<PaymentResult>("/api/payments/verify", {
+    const result = await api.post<PaymentResult>("/api/payments/verify", {
       razorpay_order_id: order.orderId,
       razorpay_payment_id: `pay_demo_${Date.now()}`,
       razorpay_signature: "demo_signature",
     });
+    trackEvent("payment_completed", { amount: order.amount / 100, currency: "INR", mode: "demo" });
+    return result;
   }
 
   // 3. Fetch Razorpay public key
@@ -67,6 +70,7 @@ export async function payInvoice(
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
           });
+          trackEvent("payment_completed", { amount: order.amount / 100, currency: "INR" });
           resolve(result);
         } catch (err) {
           reject(err);

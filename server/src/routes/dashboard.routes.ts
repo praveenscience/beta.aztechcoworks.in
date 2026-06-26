@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth, requireRole } from "../auth.js";
 import { db, hashPassword } from "../store.js";
 import { uid } from "../uid.js";
+import { generateInvoicePdf } from "../pdf.js";
 import {
   validate, leadPatchSchema, taskPatchSchema, taskCreateSchema,
   leadActivitySchema, visitorCreateSchema, bookingCreateSchema,
@@ -333,6 +334,65 @@ router.post("/invoices", (req, res) => {
   };
   db.invoices.insert(invoice);
   res.status(201).json(invoice);
+});
+
+router.get("/invoices/:id/pdf", async (req, res) => {
+  const invoice = db.invoices.find(req.params.id);
+  if (!invoice) { res.status(404).json({ error: "Invoice not found" }); return; }
+
+  const user = db.users.find(invoice.userId);
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  // Find related plan/booking for description
+  let description = "Aztech Co-Works services";
+  let branchName: string | undefined;
+  let planName: string | undefined;
+
+  if (invoice.membershipId) {
+    const membership = db.memberships.all().find((m) => m.id === invoice.membershipId);
+    if (membership) {
+      const plan = db.plans.find(membership.planId);
+      const branch = db.branches.find(membership.branchId);
+      planName = plan?.name;
+      branchName = branch?.name;
+      description = `${plan?.name || "Membership"} — ${membership.seats} seat(s), ${membership.startDate} to ${membership.endDate}`;
+    }
+  } else if (invoice.bookingId) {
+    const booking = db.bookings.all().find((b) => b.id === invoice.bookingId);
+    if (booking) {
+      const branch = db.branches.find(booking.branchId);
+      branchName = branch?.name;
+      if (booking.resourceType === "day_pass") {
+        description = `Day Pass — ${branch?.name || "Aztech Co-Works"}`;
+      } else {
+        const room = db.meetingRooms.all().find((r) => r.id === booking.resourceId);
+        description = `Meeting Room: ${room?.name || booking.resourceId} — ${new Date(booking.startAt).toLocaleString("en-IN")}`;
+      }
+    }
+  }
+
+  try {
+    const pdfBuffer = await generateInvoicePdf({
+      number: invoice.number,
+      issuedAt: invoice.issuedAt,
+      status: invoice.status,
+      subtotal: invoice.subtotal,
+      gst: invoice.gst,
+      total: invoice.total,
+      userName: user.name,
+      userEmail: user.email,
+      userCompany: user.company,
+      planName,
+      branchName,
+      description,
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${invoice.number}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to generate PDF" });
+  }
 });
 
 router.get("/invoices", (req, res) => {
