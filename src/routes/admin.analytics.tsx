@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { useLeads, useAllBranches, useAllInvoices, useUsers } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useLeads, useAllBranches, useAllInvoices, useUsers, useAllMemberships } from "@/lib/queries";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/analytics")({
@@ -14,8 +13,7 @@ function Analytics() {
   const { data: branches = [] } = useAllBranches();
   const { data: leads = [] } = useLeads();
   const { data: invoices = [] } = useAllInvoices();
-  // useMyMemberships() only returns current user's — keep useStore for all memberships
-  const memberships = useStore((s) => s.memberships);
+  const { data: memberships = [] } = useAllMemberships();
 
   const totalSeats = branches.reduce((s, b) => s + b.totalSeats, 0);
   const occupied = branches.reduce((s, b) => s + (b.totalSeats - b.availableSeats), 0);

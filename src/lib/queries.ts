@@ -229,6 +229,34 @@ export function useAllBranches() {
   });
 }
 
+export function useMeetingRooms() {
+  return useQuery<MeetingRoom[]>({
+    queryKey: ["dashboard", "meeting-rooms"],
+    queryFn: () => api.get("/api/dashboard/meeting-rooms"),
+  });
+}
+
+export function useSeatInventory() {
+  return useQuery<SeatInventory[]>({
+    queryKey: ["dashboard", "seat-inventory"],
+    queryFn: () => api.get("/api/dashboard/seat-inventory"),
+  });
+}
+
+export function useAllMemberships() {
+  return useQuery<Membership[]>({
+    queryKey: ["dashboard", "all-memberships"],
+    queryFn: () => api.get("/api/dashboard/all-memberships"),
+  });
+}
+
+export function useAllBookings() {
+  return useQuery<Booking[]>({
+    queryKey: ["dashboard", "all-bookings"],
+    queryFn: () => api.get("/api/dashboard/all-bookings"),
+  });
+}
+
 // ─── Dashboard mutations ────────────────────────
 
 export function useCreateLeadActivity() {

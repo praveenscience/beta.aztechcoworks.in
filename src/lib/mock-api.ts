@@ -48,6 +48,10 @@ const getRoutes: [RegExp, RouteHandler][] = [
   [/^\/api\/dashboard\/invoices$/, () => mock.invoices],
   [/^\/api\/dashboard\/users$/, () => mock.users],
   [/^\/api\/dashboard\/visitors$/, () => []],
+  [/^\/api\/dashboard\/meeting-rooms$/, () => mock.meetingRooms],
+  [/^\/api\/dashboard\/seat-inventory$/, () => mock.seatInventory],
+  [/^\/api\/dashboard\/all-memberships$/, () => mock.memberships],
+  [/^\/api\/dashboard\/all-bookings$/, () => []],
   [/^\/api\/dashboard\/all-branches$/, () => mock.branches],
 ];
 

@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
-import { useMe, useBranches, useMyBookings, useCreateBooking } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useMe, useBranches, useMyBookings, useCreateBooking, useMeetingRooms } from "@/lib/queries";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/dashboard/bookings")({
@@ -22,7 +21,7 @@ function BookingsPage() {
   const { data: allBranches = [] } = useBranches();
   const branches = allBranches.filter((b) => b.isActive);
   const { data: bookings = [] } = useMyBookings();
-  const rooms = useStore((s) => s.meetingRooms);
+  const { data: rooms = [] } = useMeetingRooms();
   const createBookingMutation = useCreateBooking();
 
   const [branchId, setBranchId] = useState(me?.branchId ?? branches[0]?.id);

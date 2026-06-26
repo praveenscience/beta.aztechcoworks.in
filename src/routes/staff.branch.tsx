@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useShallow } from "zustand/react/shallow";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { useBranches, useMe } from "@/lib/queries";
-import { useStore } from "@/lib/store";
+import { useBranches, useMe, useSeatInventory, useAllBookings, useAllMemberships } from "@/lib/queries";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/staff/branch")({
@@ -16,10 +14,12 @@ function BranchOps() {
   const { data: me } = useMe();
   const { data: branches = [] } = useBranches();
   const branch = branches.find((b) => b.id === me?.branchId) ?? branches[0];
-  // No API endpoint for seatInventory, bookings-by-branch, memberships-all — keep useStore
-  const seatInv = useStore(useShallow((s) => s.seatInventory.filter((si) => si.branchId === branch?.id)));
-  const bookings = useStore(useShallow((s) => s.bookings.filter((b) => b.branchId === branch?.id)));
-  const memberships = useStore(useShallow((s) => s.memberships.filter((m) => m.branchId === branch?.id)));
+  const { data: allSeatInv = [] } = useSeatInventory();
+  const { data: allBookings = [] } = useAllBookings();
+  const { data: allMemberships = [] } = useAllMemberships();
+  const seatInv = allSeatInv.filter((si) => si.branchId === branch?.id);
+  const bookings = allBookings.filter((b) => b.branchId === branch?.id);
+  const memberships = allMemberships.filter((m) => m.branchId === branch?.id);
 
   if (!branch) return null;
   const occupancy = Math.round(((branch.totalSeats - branch.availableSeats) / branch.totalSeats) * 100);

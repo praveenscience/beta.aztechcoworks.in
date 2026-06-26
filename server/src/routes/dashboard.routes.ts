@@ -266,6 +266,40 @@ router.delete("/plans/:id", requireRole("super_admin"), (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── Meeting rooms (all authenticated) ──────────
+
+router.get("/meeting-rooms", (_req, res) => {
+  res.json(db.meetingRooms.all());
+});
+
+// ─── Seat inventory (all authenticated) ─────────
+
+router.get("/seat-inventory", (_req, res) => {
+  res.json(db.seatInventory.all());
+});
+
+// ─── All memberships (admin/manager) ────────────
+
+router.get("/all-memberships", (req, res) => {
+  const user = (req as any)._user;
+  if (!["super_admin", "branch_manager"].includes(user.role)) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  res.json(db.memberships.all());
+});
+
+// ─── All bookings (admin/manager) ───────────────
+
+router.get("/all-bookings", (req, res) => {
+  const user = (req as any)._user;
+  if (!["super_admin", "branch_manager"].includes(user.role)) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  res.json(db.bookings.all());
+});
+
 // ─── Invoices (finance/admin) ───────────────────
 
 router.get("/invoices", (req, res) => {

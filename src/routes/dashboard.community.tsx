@@ -4,8 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useStore } from "@/lib/store";
-import { useShallow } from "zustand/react/shallow";
+import { useUsers, useBranches } from "@/lib/queries";
 import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/community")({
@@ -13,8 +12,9 @@ export const Route = createFileRoute("/dashboard/community")({
 });
 
 function CommunityPage() {
-  const users = useStore(useShallow((s) => s.users.filter((u) => u.role === "member")));
-  const branches = useStore((s) => s.branches);
+  const { data: allUsers = [] } = useUsers();
+  const { data: branches = [] } = useBranches();
+  const users = allUsers.filter((u) => u.role === "member");
   const [q, setQ] = useState("");
   const filtered = users.filter((u) =>
     `${u.name} ${u.company ?? ""}`.toLowerCase().includes(q.toLowerCase()),
