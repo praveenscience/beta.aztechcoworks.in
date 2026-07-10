@@ -1,4 +1,15 @@
+# Block direct access to sensitive files
+<FilesMatch "\.(env|db|db-wal|db-shm)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to src/ directory
 RewriteEngine On
+RewriteRule ^src/ - [F,L]
+RewriteRule ^data/ - [F,L]
+
+# Route all requests through index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
