@@ -111,6 +111,23 @@ final class Db
                 id TEXT PRIMARY KEY, name TEXT NOT NULL, company TEXT NOT NULL,
                 role TEXT NOT NULL, quote TEXT NOT NULL, avatar TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                token TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id),
+                expiresAt TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS payments (
+                id TEXT PRIMARY KEY, orderId TEXT UNIQUE NOT NULL,
+                razorpayPaymentId TEXT, razorpaySignature TEXT,
+                invoiceId TEXT NOT NULL REFERENCES invoices(id),
+                amount INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'created',
+                createdAt TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                userId TEXT NOT NULL, action TEXT NOT NULL,
+                entityType TEXT NOT NULL, entityId TEXT,
+                detail TEXT, createdAt TEXT NOT NULL
+            );
         ");
     }
 
@@ -122,7 +139,7 @@ final class Db
         if ($count > 0) return;
 
         $now = gmdate('c');
-        $pw = hash('sha256', 'demo1234');
+        $pw = password_hash('demo1234', PASSWORD_BCRYPT);
 
         $this->pdo->beginTransaction();
 
@@ -214,7 +231,16 @@ final class Db
 
     public function hashPassword(string $plain): string
     {
-        return hash('sha256', $plain);
+        return password_hash($plain, PASSWORD_BCRYPT);
+    }
+
+    public function verifyPassword(string $plain, string $hash): bool
+    {
+        // Support legacy SHA-256 hashes from old seed data
+        if (strlen($hash) === 64 && !str_starts_with($hash, '$2')) {
+            return hash_equals($hash, hash('sha256', $plain));
+        }
+        return password_verify($plain, $hash);
     }
 
     /** @return list<array<string,mixed>> */
@@ -268,6 +294,48 @@ final class Db
         $sets = implode(', ', array_map(fn($k) => "$k = ?", array_keys($patch)));
         $stmt = $this->pdo->prepare("UPDATE $table SET $sets WHERE id = ?");
         $stmt->execute([...array_values($patch), $id]);
+    }
+
+    public function delete(string $table, string $id): void
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM $table WHERE id = ?");
+        $stmt->execute([$id]);
+    }
+
+    public function deleteBy(string $table, string $col, string $val): void
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM $table WHERE $col = ?");
+        $stmt->execute([$val]);
+    }
+
+    public function count(string $table): int
+    {
+        return (int) $this->pdo->query("SELECT COUNT(*) FROM $table")->fetchColumn();
+    }
+
+    /** Check for overlapping bookings on a resource */
+    public function hasBookingConflict(string $resourceId, string $startAt, string $endAt): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT id FROM bookings WHERE resourceId = ? AND status = 'confirmed' AND startAt < ? AND endAt > ?"
+        );
+        $stmt->execute([$resourceId, $endAt, $startAt]);
+        return (bool) $stmt->fetch();
+    }
+
+    /** Insert an audit log entry */
+    public function insertAuditLog(string $userId, string $action, string $entityType, ?string $entityId = null, ?string $detail = null): void
+    {
+        $stmt = $this->pdo->prepare("INSERT INTO audit_logs (userId, action, entityType, entityId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$userId, $action, $entityType, $entityId, $detail, gmdate('c')]);
+    }
+
+    /** Get recent audit logs */
+    public function auditLogs(int $limit = 500): array
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM audit_logs ORDER BY id DESC LIMIT ?");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll();
     }
 
     // ─── JSON & boolean encoding ────────────────

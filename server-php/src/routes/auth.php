@@ -15,7 +15,7 @@ $router->post('/api/auth/login', function () use ($db, $router) {
     }
 
     $user = $db->findBy('users', 'email', $b['email']);
-    if (!$user || $user['passwordHash'] !== $db->hashPassword($b['password'])) {
+    if (!$user || !$db->verifyPassword($b['password'], $user['passwordHash'])) {
         return $router->json(['error' => 'Invalid credentials'], 401);
     }
 
