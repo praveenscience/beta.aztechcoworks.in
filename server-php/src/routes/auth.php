@@ -4,10 +4,6 @@ declare(strict_types=1);
 /** @var \Aztech\Router $router */
 /** @var \Aztech\Db $db */
 
-function body(): array {
-    return json_decode(file_get_contents('php://input') ?: '{}', true) ?? [];
-}
-
 $router->post('/api/auth/login', function () use ($db, $router) {
     $b = body();
     if (empty($b['email']) || empty($b['password'])) {
