@@ -31,7 +31,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Hero ─────────────────────── */
+    /* Hero */
     .hero {
       background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #2d3f6a 100%);
       color: white;
@@ -52,9 +52,9 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(232,166,48,0.15);
-      border: 1px solid rgba(232,166,48,0.3);
-      color: var(--amber-light);
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86efac;
       font-size: 13px;
       font-weight: 600;
       padding: 6px 16px;
@@ -92,13 +92,11 @@
     }
     .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,166,48,0.4); }
 
-    /* ── Container ────────────────── */
+    /* Container */
     .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
 
-    /* ── Section ──────────────────── */
-    .section {
-      padding: 64px 0;
-    }
+    /* Section */
+    .section { padding: 64px 0; }
     .section-label {
       font-size: 12px;
       font-weight: 700;
@@ -119,16 +117,14 @@
       margin-bottom: 40px;
     }
 
-    /* ── Stats strip ─────────────── */
+    /* Stats strip */
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 24px;
       padding: 48px 0;
     }
-    .stat {
-      text-align: center;
-    }
+    .stat { text-align: center; }
     .stat-num {
       font-family: 'Rajdhani', sans-serif;
       font-size: 2.8rem;
@@ -142,11 +138,8 @@
       margin-top: 4px;
     }
 
-    /* ── Steps / How to explore ─── */
-    .steps {
-      display: grid;
-      gap: 24px;
-    }
+    /* Steps */
+    .steps { display: grid; gap: 24px; }
     .step {
       background: var(--card);
       border: 1px solid var(--border);
@@ -173,11 +166,7 @@
       display: grid;
       place-items: center;
     }
-    .step h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
+    .step h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; }
     .step p { color: var(--muted); font-size: 0.95rem; }
     .step .tag {
       display: inline-block;
@@ -190,7 +179,7 @@
       border-radius: 100px;
     }
 
-    /* ── Roles grid ───────────────── */
+    /* Roles grid */
     .roles {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -217,23 +206,16 @@
       font-size: 20px;
       margin-bottom: 16px;
     }
-    .role-card h3 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
+    .role-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
     .role-card .name {
       font-size: 0.8rem;
       color: var(--amber);
       font-weight: 600;
       margin-bottom: 8px;
     }
-    .role-card p {
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
+    .role-card p { font-size: 0.9rem; color: var(--muted); }
 
-    /* ── Feature list ─────────────── */
+    /* Feature list */
     .features {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -245,22 +227,12 @@
       border-radius: var(--radius);
       padding: 28px;
     }
-    .feature-icon {
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
-    .feature h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
+    .feature-icon { font-size: 28px; margin-bottom: 12px; }
+    .feature h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
     .feature p { font-size: 0.9rem; color: var(--muted); }
 
-    /* ── Roadmap ──────────────────── */
-    .roadmap {
-      display: grid;
-      gap: 16px;
-    }
+    /* Roadmap */
+    .roadmap { display: grid; gap: 16px; }
     .roadmap-item {
       display: flex;
       align-items: center;
@@ -278,11 +250,7 @@
     .dot-done { background: var(--success); }
     .dot-next { background: var(--amber); }
     .dot-later { background: var(--border); }
-    .roadmap-item .label {
-      flex: 1;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
+    .roadmap-item .label { flex: 1; font-weight: 600; font-size: 0.95rem; }
     .roadmap-item .status {
       font-size: 0.78rem;
       font-weight: 600;
@@ -293,7 +261,7 @@
     .status-next { background: #fef3c7; color: #92400e; }
     .status-later { background: #f1f5f9; color: #64748b; }
 
-    /* ── CTA banner ───────────────── */
+    /* CTA banner */
     .cta-banner {
       background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
       border-radius: var(--radius);
@@ -309,26 +277,9 @@
       margin-bottom: 8px;
       color: white;
     }
-    .cta-banner p {
-      color: rgba(255,255,255,0.65);
-      margin-bottom: 24px;
-    }
-    .cta-banner code {
-      display: block;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px;
-      padding: 16px 24px;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 0.95rem;
-      color: var(--amber-light);
-      margin: 0 auto;
-      max-width: 480px;
-      text-align: left;
-      line-height: 2;
-    }
+    .cta-banner p { color: rgba(255,255,255,0.65); margin-bottom: 24px; }
 
-    /* ── Footer ───────────────────── */
+    /* Footer */
     .footer {
       text-align: center;
       padding: 32px 24px;
@@ -337,7 +288,7 @@
       border-top: 1px solid var(--border);
     }
 
-    /* ── Responsive ───────────────── */
+    /* Responsive */
     @media (max-width: 640px) {
       .hero { padding: 56px 20px 40px; }
       .step { grid-template-columns: 1fr; }
@@ -348,23 +299,23 @@
 </head>
 <body>
 
-  <!-- ── Hero ──────────────────────────────────────── -->
+  <!-- Hero -->
   <section class="hero">
-    <div class="hero-badge">&#9733; Product Walkthrough</div>
+    <div class="hero-badge">&#10003; Ready to Go Live</div>
     <h1>Explore <span>Aztech Co-Works</span> Platform</h1>
-    <p>A complete operating system for coworking spaces &mdash; from member onboarding to invoicing. See it live in 3 minutes.</p>
+    <p>A complete operating system for coworking spaces &mdash; from lead capture to invoicing, payments, and WhatsApp notifications. 100% built.</p>
     <a href="http://localhost:5173" class="hero-cta" target="_blank">&#9654; Open the App</a>
   </section>
 
-  <!-- ── Stats ─────────────────────────────────────── -->
+  <!-- Stats -->
   <div class="container">
     <div class="stats">
       <div class="stat">
-        <div class="stat-num">8</div>
+        <div class="stat-num">9</div>
         <div class="stat-label">Role-based dashboards</div>
       </div>
       <div class="stat">
-        <div class="stat-num">25+</div>
+        <div class="stat-num">48</div>
         <div class="stat-label">API endpoints</div>
       </div>
       <div class="stat">
@@ -378,7 +329,7 @@
     </div>
   </div>
 
-  <!-- ── How to explore ────────────────────────────── -->
+  <!-- How to explore -->
   <section class="section">
     <div class="container">
       <div class="section-label">Getting started</div>
@@ -401,7 +352,7 @@
             <p>You'll land on the <strong>marketing home page</strong> &mdash; the site your prospective members will see. Explore:</p>
             <p style="margin-top: 8px;">
               <strong>&rarr; Branches</strong> &mdash; see all 6 locations with photos, amenities, seat counts<br/>
-              <strong>&rarr; Pricing</strong> &mdash; plans from hot desks to managed offices<br/>
+              <strong>&rarr; Pricing</strong> &mdash; plans from hot desks to managed enterprise floors<br/>
               <strong>&rarr; Corporate</strong> &mdash; enterprise solutions page<br/>
               <strong>&rarr; Blog</strong> &mdash; content marketing with full articles<br/>
               <strong>&rarr; Book a Visit</strong> &mdash; lead capture form with branch picker
@@ -423,9 +374,10 @@
             <p>Inside each dashboard, try real actions:</p>
             <p style="margin-top: 8px;">
               &bull; <strong>Sales exec:</strong> drag leads across the pipeline, open a lead, change stage, add notes<br/>
-              &bull; <strong>Member:</strong> view bookings, invoices, membership details<br/>
+              &bull; <strong>Member:</strong> view bookings, download invoice PDFs, check membership<br/>
               &bull; <strong>Reception:</strong> check in visitors, manage walk-ins<br/>
-              &bull; <strong>Super admin:</strong> see all branches, users, pricing, analytics
+              &bull; <strong>Finance:</strong> view invoices, payments, GST breakdown<br/>
+              &bull; <strong>Super admin:</strong> manage all branches, users, pricing, view audit logs
             </p>
           </div>
         </div>
@@ -433,11 +385,11 @@
     </div>
   </section>
 
-  <!-- ── Roles ─────────────────────────────────────── -->
+  <!-- Roles -->
   <section class="section" style="background: #f4f6f8;">
     <div class="container">
       <div class="section-label">Role-based access</div>
-      <h2>8 dashboards, one platform</h2>
+      <h2>9 dashboards, one platform</h2>
       <p>Every person in your team gets a workspace tailored to their job. Here's what each role sees.</p>
 
       <div class="roles">
@@ -445,7 +397,7 @@
           <div class="role-icon">&#128100;</div>
           <h3>Member</h3>
           <div class="name">Demo: Anjali Menon</div>
-          <p>Bookings, invoices, membership status, visitor passes, referral rewards, community directory.</p>
+          <p>Bookings, invoices (with PDF download), membership status, visitor passes, referral rewards, community directory.</p>
         </div>
         <div class="role-card">
           <div class="role-icon">&#128200;</div>
@@ -487,13 +439,13 @@
           <div class="role-icon">&#9733;</div>
           <h3>Super Admin</h3>
           <div class="name">Demo: Aarav Kumar</div>
-          <p>Everything. All branches, all users, pricing, workflows, analytics, plus access to every staff dashboard.</p>
+          <p>Everything. All branches, all users, pricing, audit logs, analytics, plus access to every staff dashboard.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── What's built ──────────────────────────────── -->
+  <!-- What's built -->
   <section class="section">
     <div class="container">
       <div class="section-label">What's included</div>
@@ -508,23 +460,38 @@
         </div>
         <div class="feature">
           <div class="feature-icon">&#128274;</div>
-          <h3>Authentication</h3>
-          <p>Secure login, registration, session management. Demo mode for instant role exploration.</p>
+          <h3>Authentication &amp; Password Reset</h3>
+          <p>Secure login, registration, forgot password with email link, session management. Demo mode for instant role exploration.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#128179;</div>
+          <h3>Razorpay Payments</h3>
+          <p>Online payments for memberships &amp; bookings. Create order, verify, webhooks. Demo mode works without Razorpay keys.</p>
         </div>
         <div class="feature">
           <div class="feature-icon">&#9881;</div>
-          <h3>Backend Server</h3>
-          <p>25+ API endpoints. Own server, no third-party dependency. Ready for database when needed.</p>
+          <h3>48 API Endpoints</h3>
+          <p>Full PHP backend ready for cPanel. Auth, leads, bookings, invoices, payments, users, branches, plans, audit logs.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#128231;</div>
+          <h3>Email Notifications</h3>
+          <p>Welcome, password reset, booking confirmation, invoice, site visit &mdash; 5 email templates via Resend API.</p>
         </div>
         <div class="feature">
           <div class="feature-icon">&#128241;</div>
-          <h3>Mobile First</h3>
-          <p>Every page works beautifully on phones, tablets, and desktops. Sidebar becomes a slide-out drawer.</p>
+          <h3>WhatsApp Business API</h3>
+          <p>Lead welcome, visit reminder, booking confirmation, payment receipt &mdash; 4 message templates ready.</p>
         </div>
         <div class="feature">
-          <div class="feature-icon">&#128172;</div>
-          <h3>WhatsApp Integration</h3>
-          <p>One-click WhatsApp from lead pages. Pre-filled messages. Ready for Business API upgrade.</p>
+          <div class="feature-icon">&#128196;</div>
+          <h3>PDF Invoices &amp; Calendar</h3>
+          <p>GST-compliant PDF invoices with CGST/SGST. Calendar .ics downloads for bookings. No external libraries.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#128202;</div>
+          <h3>Analytics &amp; SEO</h3>
+          <p>Google Analytics 4, sitemap.xml, robots.txt, JSON-LD structured data for all 6 branches. Search engine ready.</p>
         </div>
         <div class="feature">
           <div class="feature-icon">&#127919;</div>
@@ -535,12 +502,12 @@
     </div>
   </section>
 
-  <!-- ── Roadmap ───────────────────────────────────── -->
+  <!-- Roadmap -->
   <section class="section" style="background: #f4f6f8;">
     <div class="container">
       <div class="section-label">Roadmap</div>
       <h2>Where we are &amp; what's next</h2>
-      <p>Green = done, amber = up next, grey = planned for later.</p>
+      <p>Green = done, amber = deploy step, grey = nice-to-have for later.</p>
 
       <div class="roadmap">
         <div class="roadmap-item">
@@ -550,17 +517,62 @@
         </div>
         <div class="roadmap-item">
           <div class="dot dot-done"></div>
-          <div class="label">8 role-based dashboards</div>
+          <div class="label">9 role-based dashboards</div>
           <div class="status status-done">Done</div>
         </div>
         <div class="roadmap-item">
           <div class="dot dot-done"></div>
-          <div class="label">Backend server &amp; API (25+ endpoints)</div>
+          <div class="label">Backend server &amp; 48 API endpoints</div>
           <div class="status status-done">Done</div>
         </div>
         <div class="roadmap-item">
           <div class="dot dot-done"></div>
-          <div class="label">Authentication &amp; session management</div>
+          <div class="label">Authentication &amp; password reset</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">Razorpay payment gateway</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">Email notifications (5 templates)</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">WhatsApp Business API (4 templates)</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">PDF invoices &amp; calendar downloads</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">SQLite database (persistent data)</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">Real branch data (6 locations)</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">PHP backend for cPanel hosting</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">SEO &amp; Google Analytics</div>
+          <div class="status status-done">Done</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-done"></div>
+          <div class="label">Booking conflict detection &amp; audit logs</div>
           <div class="status status-done">Done</div>
         </div>
         <div class="roadmap-item">
@@ -569,86 +581,59 @@
           <div class="status status-done">Done</div>
         </div>
         <div class="roadmap-item">
-          <div class="dot dot-next"></div>
-          <div class="label">Remaining API endpoints (forms, bookings, visitors)</div>
-          <div class="status status-next">Up next</div>
-        </div>
-        <div class="roadmap-item">
           <div class="dot dot-done"></div>
-          <div class="label">SQLite database (data persists across restarts)</div>
+          <div class="label">Enterprise plan &amp; corporate page</div>
           <div class="status status-done">Done</div>
         </div>
         <div class="roadmap-item">
           <div class="dot dot-done"></div>
-          <div class="label">Real branch data (6 locations, real addresses &amp; contacts)</div>
-          <div class="status status-done">Done</div>
-        </div>
-        <div class="roadmap-item">
-          <div class="dot dot-done"></div>
-          <div class="label">PHP backend for cPanel deployment</div>
-          <div class="status status-done">Done</div>
-        </div>
-        <div class="roadmap-item">
-          <div class="dot dot-done"></div>
-          <div class="label">Offline mock mode (frontend works without backend)</div>
-          <div class="status status-done">Done</div>
-        </div>
-        <div class="roadmap-item">
-          <div class="dot dot-done"></div>
-          <div class="label">Enterprise plan &amp; B2B corporate page</div>
+          <div class="label">Offline mock mode (works without backend)</div>
           <div class="status status-done">Done</div>
         </div>
         <div class="roadmap-item">
           <div class="dot dot-next"></div>
-          <div class="label">Deploy to live hosting (cPanel)</div>
-          <div class="status status-next">Up next</div>
+          <div class="label">Upload to cPanel &amp; go live</div>
+          <div class="status status-next">Next step</div>
         </div>
         <div class="roadmap-item">
-          <div class="dot dot-later"></div>
-          <div class="label">Razorpay payment gateway</div>
-          <div class="status status-later">Planned</div>
-        </div>
-        <div class="roadmap-item">
-          <div class="dot dot-later"></div>
-          <div class="label">WhatsApp Business API</div>
-          <div class="status status-later">Planned</div>
-        </div>
-        <div class="roadmap-item">
-          <div class="dot dot-later"></div>
-          <div class="label">Email notifications &amp; reminders</div>
-          <div class="status status-later">Planned</div>
+          <div class="dot dot-next"></div>
+          <div class="label">Razorpay KYC (1-3 business days)</div>
+          <div class="status status-next">Start today</div>
         </div>
         <div class="roadmap-item">
           <div class="dot dot-later"></div>
           <div class="label">Real branch photos &amp; floor plans</div>
-          <div class="status status-later">Planned</div>
+          <div class="status status-later">Post-launch</div>
         </div>
         <div class="roadmap-item">
           <div class="dot dot-later"></div>
-          <div class="label">Google Analytics &amp; SEO optimization</div>
-          <div class="status status-later">Planned</div>
+          <div class="label">WhatsApp BSP setup (Interakt/Wati)</div>
+          <div class="status status-later">Post-launch</div>
+        </div>
+        <div class="roadmap-item">
+          <div class="dot dot-later"></div>
+          <div class="label">Google My Business for 6 branches</div>
+          <div class="status status-later">Post-launch</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── How to run ────────────────────────────────── -->
+  <!-- CTA -->
   <section class="section">
     <div class="container">
       <div class="cta-banner">
-        <h2>Ready to explore?</h2>
-        <p>Ask Praveen to start the app, or if you're feeling adventurous, run these commands in the project folder:</p>
-        <code>
-          cd server && npm run dev &nbsp;&nbsp;# starts the backend<br/>
-          cd .. && npm run dev &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# starts the website
-        </code>
-        <p style="margin-top: 20px; margin-bottom: 0; font-size: 0.9rem;">Then open <strong>http://localhost:5173</strong> in your browser and click <strong>Sign in</strong>.</p>
+        <h2>Ready to go live?</h2>
+        <p>Everything is built. We just need to upload files to cPanel and set 2-3 config values. See the Baby-Steps guide for instructions.</p>
+        <p style="margin-top: 16px; margin-bottom: 0; font-size: 0.95rem; color: rgba(255,255,255,0.8);">
+          <strong>To explore locally:</strong> Ask Praveen to start the app, then open <strong>localhost:5173</strong> and click <strong>Sign in</strong>.
+        </p>
       </div>
     </div>
   </section>
 
   <footer class="footer">
-    <p>Aztech Co-Works &mdash; Built with care by Praveen &amp; Syed &bull; June 2026</p>
+    <p>Aztech Co-Works &mdash; Built with care by Praveen &amp; Syed &bull; July 2026</p>
   </footer>
 
 </body>
