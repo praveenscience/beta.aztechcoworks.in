@@ -6,9 +6,13 @@ require __DIR__ . '/src/bootstrap.php';
 
 use Aztech\Router;
 use Aztech\Db;
+use Aztech\Email;
+use Aztech\Whatsapp;
 
-$db = new Db();
-$router = new Router();
+$db       = new Db();
+$router   = new Router();
+$email    = new Email();
+$whatsapp = new Whatsapp();
 require __DIR__ . '/src/routes.php';
 
 $router->dispatch(

@@ -9,6 +9,23 @@ spl_autoload_register(function (string $class): void {
     if (is_file($path)) require $path;
 });
 
+// ─── Environment variables (.env) ──────────────
+$envFile = __DIR__ . '/../.env';
+if (is_file($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') continue;
+        if (str_contains($line, '=')) {
+            [$key, $val] = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($val);
+        }
+    }
+}
+
+if (!empty($_ENV['CORS_ORIGIN'])) {
+    define('AZTECH_CORS_ORIGIN', $_ENV['CORS_ORIGIN']);
+}
+
 // ─── Session ────────────────────────────────────
 session_name('aztech_sid');
 session_start();
