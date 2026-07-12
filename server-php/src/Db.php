@@ -25,7 +25,18 @@ final class Db
         $this->pdo->exec('PRAGMA foreign_keys = ON');
 
         $this->createSchema();
+        $this->migrate();
         $this->seedIfEmpty();
+    }
+
+    private function migrate(): void
+    {
+        // Add photos column to branches if missing
+        $cols = $this->pdo->query("PRAGMA table_info(branches)")->fetchAll();
+        $colNames = array_column($cols, 'name');
+        if (!in_array('photos', $colNames, true)) {
+            $this->pdo->exec("ALTER TABLE branches ADD COLUMN photos TEXT NOT NULL DEFAULT '[]'");
+        }
     }
 
     // ─── Schema ─────────────────────────────────
@@ -38,7 +49,8 @@ final class Db
                 address TEXT NOT NULL, city TEXT NOT NULL, phone TEXT NOT NULL,
                 hours TEXT NOT NULL, amenities TEXT NOT NULL DEFAULT '[]',
                 totalSeats INTEGER NOT NULL, availableSeats INTEGER NOT NULL,
-                isActive INTEGER NOT NULL DEFAULT 1, photo TEXT NOT NULL, description TEXT NOT NULL
+                isActive INTEGER NOT NULL DEFAULT 1, photo TEXT NOT NULL, description TEXT NOT NULL,
+                photos TEXT NOT NULL DEFAULT '[]'
             );
             CREATE TABLE IF NOT EXISTS seat_inventory (
                 branchId TEXT NOT NULL REFERENCES branches(id), type TEXT NOT NULL,
@@ -341,7 +353,7 @@ final class Db
     // ─── JSON & boolean encoding ────────────────
 
     private const JSON_COLS = [
-        'amenities' => true, 'features' => true, 'tags' => true, 'customFields' => true,
+        'amenities' => true, 'features' => true, 'tags' => true, 'customFields' => true, 'photos' => true,
     ];
 
     private const BOOL_COLS = ['isActive' => true, 'done' => true];

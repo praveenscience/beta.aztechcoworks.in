@@ -54,6 +54,7 @@ export interface Branch {
   availableSeats: number;
   isActive: boolean;
   photo: string;
+  photos?: string[];
   description: string;
 }
 

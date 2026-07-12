@@ -476,6 +476,135 @@ $router->patch('/api/dashboard/branches/{id}', function (array $params) use ($db
     return null;
 });
 
+// ─── Branch photo upload ────────────────────────
+
+$router->post('/api/dashboard/branches/{id}/photos', function (array $params) use ($db, $router) {
+    $user = requireAuth($db, $router);
+    if (!$user) return null;
+    if (!requireRole($router, $user, ['super_admin', 'branch_manager'])) return null;
+
+    $branch = $db->find('branches', $params['id']);
+    if (!$branch) {
+        return $router->json(['error' => 'Branch not found'], 404);
+    }
+
+    if (empty($_FILES['photos'])) {
+        return $router->json(['error' => 'No files uploaded'], 400);
+    }
+
+    $uploadDir = dirname(__DIR__, 2) . '/photos';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+    $maxSize = 5 * 1024 * 1024; // 5MB
+    $uploaded = [];
+
+    // Normalize $_FILES to always be arrays
+    $files = $_FILES['photos'];
+    if (!is_array($files['name'])) {
+        $files = [
+            'name' => [$files['name']],
+            'type' => [$files['type']],
+            'tmp_name' => [$files['tmp_name']],
+            'error' => [$files['error']],
+            'size' => [$files['size']],
+        ];
+    }
+
+    $count = count($files['name']);
+    for ($i = 0; $i < $count; $i++) {
+        if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
+        if ($files['size'][$i] > $maxSize) continue;
+        if (!in_array($files['type'][$i], $allowed, true)) continue;
+
+        $ext = match($files['type'][$i]) {
+            'image/jpeg' => '.jpg',
+            'image/png' => '.png',
+            'image/webp' => '.webp',
+            'image/avif' => '.avif',
+            default => '.jpg',
+        };
+
+        $filename = $params['id'] . '_' . bin2hex(random_bytes(4)) . $ext;
+        $dest = $uploadDir . '/' . $filename;
+
+        if (move_uploaded_file($files['tmp_name'][$i], $dest)) {
+            $uploaded[] = '/photos/' . $filename;
+        }
+    }
+
+    if (empty($uploaded)) {
+        return $router->json(['error' => 'No valid images uploaded. Accepted: JPG, PNG, WebP, AVIF (max 5MB)'], 400);
+    }
+
+    // Append to existing photos array
+    $existing = $branch['photos'] ?? [];
+    if (!is_array($existing)) $existing = [];
+    $allPhotos = array_merge($existing, $uploaded);
+
+    // Set first uploaded photo as cover if no cover set or still an unsplash ID
+    $cover = $branch['photo'];
+    if (str_starts_with($cover, 'photo-')) {
+        $cover = $uploaded[0];
+    }
+
+    $db->update('branches', $params['id'], [
+        'photos' => $allPhotos,
+        'photo' => $cover,
+    ]);
+
+    $router->json([
+        'uploaded' => $uploaded,
+        'photos' => $allPhotos,
+        'photo' => $cover,
+    ]);
+    return null;
+});
+
+$router->delete('/api/dashboard/branches/{id}/photos', function (array $params) use ($db, $router) {
+    $user = requireAuth($db, $router);
+    if (!$user) return null;
+    if (!requireRole($router, $user, ['super_admin', 'branch_manager'])) return null;
+
+    $branch = $db->find('branches', $params['id']);
+    if (!$branch) {
+        return $router->json(['error' => 'Branch not found'], 404);
+    }
+
+    $b = body();
+    $photoUrl = $b['url'] ?? '';
+    if (!$photoUrl) {
+        return $router->json(['error' => 'Photo URL required'], 400);
+    }
+
+    // Remove from array
+    $photos = $branch['photos'] ?? [];
+    if (!is_array($photos)) $photos = [];
+    $photos = array_values(array_filter($photos, fn($p) => $p !== $photoUrl));
+
+    // Delete file from disk
+    $filePath = dirname(__DIR__, 2) . $photoUrl;
+    if (is_file($filePath)) {
+        @unlink($filePath);
+    }
+
+    // If deleted photo was cover, use first remaining or fallback
+    $cover = $branch['photo'];
+    if ($cover === $photoUrl) {
+        $cover = $photos[0] ?? 'photo-1497366216548-37526070297c';
+    }
+
+    $db->update('branches', $params['id'], [
+        'photos' => $photos,
+        'photo' => $cover,
+    ]);
+
+    $router->json(['photos' => $photos, 'photo' => $cover]);
+    return null;
+});
+
 // ─── Plans (admin) ──────────────────────────────
 
 $router->post('/api/dashboard/plans', function () use ($db, $router) {

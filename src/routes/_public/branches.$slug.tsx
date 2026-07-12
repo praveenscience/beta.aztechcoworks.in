@@ -12,6 +12,12 @@ import { toast } from "sonner";
 import { useBranch, usePlans, useCreateLead } from "@/lib/queries";
 import { unsplash, inr, whatsappLink, seatTypeLabels } from "@/lib/format";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+function photoSrc(url: string, w = 800, h = 500) {
+  if (url.startsWith("/")) return `${API_BASE}${url}`;
+  return unsplash(url, w, h);
+}
+
 export const Route = createFileRoute("/_public/branches/$slug")({
   component: BranchDetail,
 });
@@ -62,6 +68,24 @@ function BranchDetail() {
 
         <section className="container mx-auto grid gap-10 px-4 py-12 md:px-6 lg:grid-cols-[2fr_1fr]">
           <div className="space-y-10">
+            {/* Photo gallery */}
+            {(branch.photos ?? []).length > 1 && (
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight">Gallery</h2>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {(branch.photos ?? []).map((p, i) => (
+                    <img
+                      key={i}
+                      src={photoSrc(p)}
+                      alt={`${branch.name} photo ${i + 1}`}
+                      className="aspect-[4/3] w-full rounded-xl object-cover"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">About this branch</h2>
               <p className="mt-3 text-muted-foreground">{branch.description}</p>
