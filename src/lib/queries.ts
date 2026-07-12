@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
 import { trackEvent } from "./analytics";
 import type {
-  User, Branch, SeatInventory, MeetingRoom, Plan,
+  User, Branch, SeatInventory, MeetingRoom, Plan, Coupon,
   Lead, LeadActivity, Task, SiteVisit, Membership,
   Booking, Invoice, Visitor, BlogPost, Testimonial,
 } from "@/types";
@@ -386,6 +386,40 @@ export function useDeletePlan() {
   });
 }
 
+// ─── Coupons (admin) ────────────────────────────
+
+export function useCoupons() {
+  return useQuery<Coupon[]>({
+    queryKey: ["dashboard", "coupons"],
+    queryFn: () => api.get("/api/dashboard/coupons"),
+  });
+}
+
+export function useCreateCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<Coupon>) => api.post<Coupon>("/api/dashboard/coupons", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "coupons"] }),
+  });
+}
+
+export function useUpdateCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...patch }: Partial<Coupon> & { id: string }) =>
+      api.patch<Coupon>(`/api/dashboard/coupons/${id}`, patch),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "coupons"] }),
+  });
+}
+
+export function useDeleteCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/dashboard/coupons/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "coupons"] }),
+  });
+}
+
 export function useCreateUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -407,7 +441,7 @@ export function useUpdateUser() {
 export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { userId: string; bookingId?: string; membershipId?: string; subtotal: number; gst: number; total: number }) =>
+    mutationFn: (data: { userId: string; bookingId?: string; membershipId?: string; couponId?: string; discountAmount?: number; subtotal: number; gst: number; total: number }) =>
       api.post<Invoice>("/api/dashboard/invoices", data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "me", "invoices"] }),
   });

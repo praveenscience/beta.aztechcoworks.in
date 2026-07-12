@@ -20,6 +20,7 @@ import {
   CircleUser,
   Menu,
   Settings,
+  Tag,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -69,11 +70,13 @@ const navsByRole: Record<Role, NavItem[]> = {
   ],
   marketing: [
     { to: "/staff/marketing", label: "Marketing", icon: Megaphone },
+    { to: "/admin/coupons", label: "Coupons", icon: Tag },
     { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   super_admin: [
     { to: "/admin/branches", label: "Branches", icon: Building2 },
     { to: "/admin/pricing", label: "Pricing & plans", icon: Wallet },
+    { to: "/admin/coupons", label: "Coupons", icon: Tag },
     { to: "/admin/users", label: "Users & roles", icon: Users },
     { to: "/admin/forms", label: "Forms", icon: ListTree },
     { to: "/admin/workflows", label: "Workflows", icon: Workflow },
