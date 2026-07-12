@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Archive, Pencil, Upload, X, Star, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -55,20 +55,25 @@ function AdminBranches() {
     upsertBranchMutation.mutate({ ...b, isActive: false }, { onSuccess: () => toast.success("Archived") });
   };
 
+  const openEdit = (b: Branch) => {
+    setEditing(b);
+    setOpen(true);
+  };
+
   return (
     <>
       <PageHeader
         title="Branches"
         description="Create, edit, and archive branches. Configure capacity, hours, and amenities."
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditing({ ...EMPTY })}><Plus className="mr-1.5 h-4 w-4" /> New branch</Button>
-            </DialogTrigger>
-            <BranchDialog branch={editing} onSave={save} />
-          </Dialog>
+          <Button onClick={() => openEdit({ ...EMPTY })}><Plus className="mr-1.5 h-4 w-4" /> New branch</Button>
         }
       />
+
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
+        <BranchDialog key={editing?.id ?? "new"} branch={editing} onSave={save} />
+      </Dialog>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {branches.map((b) => (
           <Card key={b.id} className={!b.isActive ? "opacity-60" : ""}>
@@ -83,12 +88,7 @@ function AdminBranches() {
             <CardContent className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{b.totalSeats} seats · {b.availableSeats} free · {(b.photos ?? []).length} photos</span>
               <div className="flex gap-1">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(b)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  </DialogTrigger>
-                  <BranchDialog branch={editing} onSave={save} />
-                </Dialog>
+                <Button size="sm" variant="ghost" onClick={() => openEdit(b)}><Pencil className="h-3.5 w-3.5" /></Button>
                 <Button size="sm" variant="ghost" onClick={() => archive(b)}>
                   <Archive className="h-3.5 w-3.5" />
                 </Button>
