@@ -114,6 +114,9 @@ function BranchDialog({ branch, onSave }: { branch: Branch | null; onSave: (b: B
         <div className="sm:col-span-2"><Label>Amenities (comma-separated)</Label>
           <Input value={b.amenities.join(", ")} onChange={(e) => setB({ ...b, amenities: e.target.value.split(",").map((a) => a.trim()) })} />
         </div>
+        <div className="sm:col-span-2"><Label>Photo</Label><Input value={b.photo} onChange={(e) => setB({ ...b, photo: e.target.value })} placeholder="Full URL or Unsplash ID" />
+          <p className="text-xs text-muted-foreground mt-1">Paste a full image URL (https://...) or an Unsplash ID</p>
+        </div>
         <div className="sm:col-span-2"><Label>Description</Label><Textarea value={b.description} onChange={(e) => setB({ ...b, description: e.target.value })} rows={3} /></div>
         <div className="flex items-center gap-2 sm:col-span-2">
           <Switch checked={b.isActive} onCheckedChange={(v) => setB({ ...b, isActive: v })} />
