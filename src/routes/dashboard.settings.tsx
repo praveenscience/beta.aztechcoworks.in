@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useMe } from "@/lib/queries";
 import { api } from "@/lib/api";
 import { roleLabels } from "@/lib/format";
-import { Lock, User, Mail, Phone, Building2, Copy, Check } from "lucide-react";
+import { Lock, User, Mail, Phone, Building2, Copy, Check, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/dashboard/settings")({
@@ -106,6 +106,16 @@ function SettingsPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleRegenerateReferral = async () => {
+    try {
+      await api.post("/api/auth/regenerate-referral", {});
+      qc.invalidateQueries({ queryKey: ["me"] });
+      toast.success("Referral code regenerated!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to regenerate");
+    }
+  };
+
   const initials = me.name
     .split(" ")
     .map((p) => p[0])
@@ -168,6 +178,16 @@ function SettingsPage() {
                   <Copy className="mr-1.5 h-3.5 w-3.5" />
                 )}
                 {copied ? "Copied" : "Copy"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRegenerateReferral}
+                className="shrink-0"
+                title="Regenerate code based on your current name"
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                Regenerate
               </Button>
             </div>
           </CardContent>

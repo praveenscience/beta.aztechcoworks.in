@@ -106,6 +106,24 @@ $router->post('/api/auth/update-profile', function () use ($db, $router) {
     return null;
 });
 
+// ─── POST /api/auth/regenerate-referral ──────────
+
+$router->post('/api/auth/regenerate-referral', function () use ($db, $router) {
+    if (empty($_SESSION['userId'])) {
+        return $router->json(['error' => 'Not authenticated'], 401);
+    }
+    $user = $db->find('users', $_SESSION['userId']);
+    if (!$user) return $router->json(['error' => 'User not found'], 401);
+
+    $name = $user['name'] ?? 'USER';
+    $code = strtoupper(substr(explode(' ', $name)[0], 0, 6)) . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+    $db->update('users', $user['id'], ['referralCode' => $code]);
+
+    $user = $db->find('users', $user['id']);
+    $router->json($db->safeUser($user));
+    return null;
+});
+
 // ─── POST /api/auth/change-password ─────────────
 
 $router->post('/api/auth/change-password', function () use ($db, $router) {
