@@ -170,6 +170,12 @@ final class CouponEngine
         // Increment global counter
         $this->db->pdo()->prepare("UPDATE coupons SET currentUsesTotal = currentUsesTotal + 1 WHERE id = ?")
             ->execute([$couponId]);
+
+        // Mark any matching user deal as "used"
+        $stmt = $this->db->pdo()->prepare(
+            "UPDATE user_deals SET status = 'used', usedAt = ? WHERE userId = ? AND couponId = ? AND status = 'available' LIMIT 1"
+        );
+        $stmt->execute([gmdate('c'), $userId, $couponId]);
     }
 
     /**

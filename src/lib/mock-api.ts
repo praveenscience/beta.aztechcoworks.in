@@ -53,6 +53,15 @@ const getRoutes: [RegExp, RouteHandler][] = [
   [/^\/api\/dashboard\/all-memberships$/, () => mock.memberships],
   [/^\/api\/dashboard\/all-bookings$/, () => []],
   [/^\/api\/dashboard\/all-branches$/, () => mock.branches],
+  [/^\/api\/dashboard\/me\/deals$/, () => {
+    if (!currentUser) return [];
+    return [
+      { id: "ud_1", userId: currentUser.id, couponId: "cp_launch", status: "available", assignedBy: "u_admin", assignedAt: "2026-07-01", coupon: { id: "cp_launch", code: "LAUNCH26", discountType: "percentage", discountValue: 26, serviceScope: "all" } },
+      { id: "ud_2", userId: currentUser.id, couponId: "cp_hot", status: "available", assignedBy: "u_admin", assignedAt: "2026-07-01", expiresAt: "2026-08-31", coupon: { id: "cp_hot", code: "HOTDESK500", discountType: "flat", discountValue: 500, serviceScope: "membership" } },
+    ];
+  }],
+  [/^\/api\/dashboard\/deals$/, () => []],
+  [/^\/api\/dashboard\/coupons$/, () => []],
   [/^\/api\/payments\/key$/, () => ({ key: "" })],
   [/^\/api\/payments\/history$/, () => []],
 ];
@@ -110,6 +119,9 @@ const postRoutes: [RegExp, RouteHandler][] = [
     orderId: `order_demo_${Date.now()}`, amount: 10000, currency: "INR", paymentId: `pay_mock_${Date.now()}`, demo: true,
   })],
   [/^\/api\/payments\/verify$/, () => ({ verified: true, paymentId: `pay_mock_${Date.now()}` })],
+  [/^\/api\/dashboard\/coupons$/, (_p, body: any) => ({ ...body, id: `cp_mock_${Date.now()}`, createdAt: new Date().toISOString() })],
+  [/^\/api\/dashboard\/deals$/, (_p, body: any) => ({ created: (body?.userIds?.length ?? 0), deals: [] })],
+  [/^\/api\/coupons\/validate$/, (_p, body: any) => ({ valid: false, reason: "Coupon validation requires a live backend." })],
   [/^\/api\/dashboard\/invoices$/, (_p, body: any) => ({
     id: `inv_mock_${Date.now()}`, number: `AZTECH-2026-${String(Date.now()).slice(-4)}`,
     ...body, status: "pending", issuedAt: new Date().toISOString(),
@@ -138,10 +150,13 @@ const patchRoutes: [RegExp, RouteHandler][] = [
   [/^\/api\/dashboard\/branches\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
   [/^\/api\/dashboard\/plans\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
   [/^\/api\/dashboard\/users\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
+  [/^\/api\/dashboard\/coupons\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
 ];
 
 const deleteRoutes: [RegExp, RouteHandler][] = [
   [/^\/api\/dashboard\/plans\/([^/]+)$/, () => ({ ok: true })],
+  [/^\/api\/dashboard\/coupons\/([^/]+)$/, () => ({ ok: true })],
+  [/^\/api\/dashboard\/deals\/([^/]+)$/, () => ({ ok: true })],
 ];
 
 function matchRoute(path: string, routes: [RegExp, RouteHandler][], body?: unknown): unknown {

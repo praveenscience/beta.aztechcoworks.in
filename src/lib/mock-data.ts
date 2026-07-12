@@ -118,8 +118,8 @@ export const memberships: Membership[] = [
 ];
 
 export const invoices: Invoice[] = [
-  { id: "inv1", number: "AZTECH-2026-0001", userId: "u_member", membershipId: "mb1", subtotal: 8500, gst: 1530, total: 10030, status: "paid", issuedAt: "2026-06-01" },
-  { id: "inv2", number: "AZTECH-2026-0002", userId: "u_member", membershipId: "mb1", subtotal: 8500, gst: 1530, total: 10030, status: "paid", issuedAt: "2026-05-01" },
+  { id: "inv1", number: "AZTECH-2026-0001", userId: "u_member", membershipId: "mb1", subtotal: 8500, gst: 1530, total: 10030, discountAmount: 0, status: "paid", issuedAt: "2026-06-01" },
+  { id: "inv2", number: "AZTECH-2026-0002", userId: "u_member", membershipId: "mb1", subtotal: 8500, gst: 1530, total: 10030, discountAmount: 0, status: "paid", issuedAt: "2026-05-01" },
 ];
 
 export const blog: BlogPost[] = [

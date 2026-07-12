@@ -9,11 +9,13 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Tag, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, Copy, Gift, Users } from "lucide-react";
 import { toast } from "sonner";
-import { useCoupons, useCreateCoupon, useUpdateCoupon, useDeleteCoupon, usePlans, useBranches } from "@/lib/queries";
+import { useCoupons, useCreateCoupon, useUpdateCoupon, useDeleteCoupon, usePlans, useBranches, useUsers, useAllDeals, useAssignDeal, useRevokeDeal } from "@/lib/queries";
 import { inr } from "@/lib/format";
-import type { Coupon, CouponDiscountType, CouponServiceScope } from "@/types";
+import type { Coupon, CouponDiscountType, CouponServiceScope, UserDeal } from "@/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/admin/coupons")({
   component: AdminCoupons,
@@ -53,6 +55,7 @@ function AdminCoupons() {
   const deleteMutation = useDeleteCoupon();
   const [editing, setEditing] = useState<Partial<Coupon> | null>(null);
   const [open, setOpen] = useState(false);
+  const [dealOpen, setDealOpen] = useState(false);
 
   const openNew = () => {
     setEditing({
@@ -108,84 +111,196 @@ function AdminCoupons() {
   return (
     <>
       <PageHeader
-        title="Coupons"
-        description="Create and manage promotional codes, discounts, and referral offers."
-        actions={<Button onClick={openNew}><Plus className="mr-1.5 h-4 w-4" /> New coupon</Button>}
+        title="Coupons & deals"
+        description="Manage promotional codes and assign personalized deals to users."
       />
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
         <CouponDialog key={editing?.id ?? editing?.code ?? "new"} coupon={editing} onSave={save} />
       </Dialog>
 
-      {/* Stats */}
+      <Dialog open={dealOpen} onOpenChange={setDealOpen}>
+        <AssignDealDialog coupons={coupons.filter((c) => c.status === "active")} onClose={() => setDealOpen(false)} />
+      </Dialog>
+
+      <Tabs defaultValue="coupons">
+        <TabsList className="mb-4">
+          <TabsTrigger value="coupons"><Tag className="mr-1.5 h-3.5 w-3.5" /> Coupons</TabsTrigger>
+          <TabsTrigger value="deals"><Gift className="mr-1.5 h-3.5 w-3.5" /> User deals</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="coupons">
+          <div className="mb-4 flex justify-end">
+            <Button onClick={openNew}><Plus className="mr-1.5 h-4 w-4" /> New coupon</Button>
+          </div>
+
+          {/* Stats */}
+          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>Active coupons</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{active.length}</div></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>Total redemptions</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{coupons.reduce((s, c) => s + (c.currentUsesTotal ?? 0), 0)}</div></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>Inactive / Expired</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{inactive.length}</div></CardContent>
+            </Card>
+          </div>
+
+          {/* Coupon table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>All coupons</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="py-2 pr-3">Code</th>
+                      <th className="pr-3">Discount</th>
+                      <th className="pr-3">Scope</th>
+                      <th className="pr-3">Usage</th>
+                      <th className="pr-3">Valid until</th>
+                      <th className="pr-3">Status</th>
+                      <th className="w-[120px]"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {coupons.map((c) => (
+                      <tr key={c.id} className="border-t">
+                        <td className="py-3 pr-3">
+                          <div className="flex items-center gap-2">
+                            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="font-mono font-semibold">{c.code}</span>
+                          </div>
+                          {c.description && <p className="mt-0.5 text-xs text-muted-foreground">{c.description}</p>}
+                        </td>
+                        <td className="pr-3 font-medium">{discountLabel(c)}</td>
+                        <td className="pr-3 capitalize">{c.serviceScope.replace("_", " ")}</td>
+                        <td className="pr-3">
+                          <span className="font-mono">{c.currentUsesTotal ?? 0}</span>
+                          {c.maxUsesTotal > 0 && <span className="text-muted-foreground"> / {c.maxUsesTotal}</span>}
+                          {c.maxUsesPerUser > 0 && (
+                            <span className="ml-1 text-xs text-muted-foreground">({c.maxUsesPerUser}/user)</span>
+                          )}
+                        </td>
+                        <td className="pr-3 text-xs">{(c.validUntil ?? "").slice(0, 10)}</td>
+                        <td className="pr-3"><Badge variant={statusColor(c.status)}>{c.status}</Badge></td>
+                        <td>
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="ghost" onClick={() => openEdit(c)} title="Edit"><Pencil className="h-3.5 w-3.5" /></Button>
+                            <Button size="sm" variant="ghost" onClick={() => duplicate(c)} title="Duplicate"><Copy className="h-3.5 w-3.5" /></Button>
+                            {c.status === "active" && (
+                              <Button size="sm" variant="ghost" onClick={() => deactivate(c)} title="Deactivate"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {coupons.length === 0 && (
+                      <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">No coupons yet. Create your first one!</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="deals">
+          <DealsTab coupons={coupons} onAssign={() => setDealOpen(true)} />
+        </TabsContent>
+      </Tabs>
+    </>
+  );
+}
+
+function DealsTab({ coupons, onAssign }: { coupons: Coupon[]; onAssign: () => void }) {
+  const { data: deals = [] } = useAllDeals();
+  const revokeMutation = useRevokeDeal();
+
+  const available = deals.filter((d) => d.status === "available");
+  const used = deals.filter((d) => d.status === "used");
+
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Assign coupons as personalized deals to specific users. They'll see them in their dashboard.
+        </p>
+        <Button onClick={onAssign}><Gift className="mr-1.5 h-4 w-4" /> Assign deal</Button>
+      </div>
+
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Card>
-          <CardHeader className="pb-2"><CardDescription>Active coupons</CardDescription></CardHeader>
-          <CardContent><div className="text-3xl font-bold">{active.length}</div></CardContent>
+          <CardHeader className="pb-2"><CardDescription>Active deals</CardDescription></CardHeader>
+          <CardContent><div className="text-3xl font-bold">{available.length}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardDescription>Total redemptions</CardDescription></CardHeader>
-          <CardContent><div className="text-3xl font-bold">{coupons.reduce((s, c) => s + (c.currentUsesTotal ?? 0), 0)}</div></CardContent>
+          <CardHeader className="pb-2"><CardDescription>Redeemed</CardDescription></CardHeader>
+          <CardContent><div className="text-3xl font-bold">{used.length}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardDescription>Inactive / Expired</CardDescription></CardHeader>
-          <CardContent><div className="text-3xl font-bold">{inactive.length}</div></CardContent>
+          <CardHeader className="pb-2"><CardDescription>Total assigned</CardDescription></CardHeader>
+          <CardContent><div className="text-3xl font-bold">{deals.length}</div></CardContent>
         </Card>
       </div>
 
-      {/* Coupon table */}
       <Card>
-        <CardHeader>
-          <CardTitle>All coupons</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>All assigned deals</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="py-2 pr-3">Code</th>
+                  <th className="py-2 pr-3">User</th>
+                  <th className="pr-3">Coupon</th>
                   <th className="pr-3">Discount</th>
-                  <th className="pr-3">Scope</th>
-                  <th className="pr-3">Usage</th>
-                  <th className="pr-3">Valid until</th>
+                  <th className="pr-3">Assigned</th>
+                  <th className="pr-3">Expires</th>
                   <th className="pr-3">Status</th>
-                  <th className="w-[120px]"></th>
+                  <th className="w-[80px]"></th>
                 </tr>
               </thead>
               <tbody>
-                {coupons.map((c) => (
-                  <tr key={c.id} className="border-t">
-                    <td className="py-3 pr-3">
-                      <div className="flex items-center gap-2">
-                        <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="font-mono font-semibold">{c.code}</span>
-                      </div>
-                      {c.description && <p className="mt-0.5 text-xs text-muted-foreground">{c.description}</p>}
-                    </td>
-                    <td className="pr-3 font-medium">{discountLabel(c)}</td>
-                    <td className="pr-3 capitalize">{c.serviceScope.replace("_", " ")}</td>
-                    <td className="pr-3">
-                      <span className="font-mono">{c.currentUsesTotal ?? 0}</span>
-                      {c.maxUsesTotal > 0 && <span className="text-muted-foreground"> / {c.maxUsesTotal}</span>}
-                      {c.maxUsesPerUser > 0 && (
-                        <span className="ml-1 text-xs text-muted-foreground">({c.maxUsesPerUser}/user)</span>
-                      )}
-                    </td>
-                    <td className="pr-3 text-xs">{(c.validUntil ?? "").slice(0, 10)}</td>
-                    <td className="pr-3"><Badge variant={statusColor(c.status)}>{c.status}</Badge></td>
-                    <td>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(c)} title="Edit"><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => duplicate(c)} title="Duplicate"><Copy className="h-3.5 w-3.5" /></Button>
-                        {c.status === "active" && (
-                          <Button size="sm" variant="ghost" onClick={() => deactivate(c)} title="Deactivate"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                {deals.map((d) => {
+                  const coupon = d.coupon ?? coupons.find((c) => c.id === d.couponId);
+                  return (
+                    <tr key={d.id} className="border-t">
+                      <td className="py-3 pr-3 font-medium">{d.userName ?? "—"}</td>
+                      <td className="pr-3 font-mono text-xs">{coupon?.code ?? "—"}</td>
+                      <td className="pr-3">{coupon ? discountLabel(coupon) : "—"}</td>
+                      <td className="pr-3 text-xs">{new Date(d.assignedAt).toLocaleDateString("en-IN")}</td>
+                      <td className="pr-3 text-xs">{d.expiresAt ? new Date(d.expiresAt).toLocaleDateString("en-IN") : "—"}</td>
+                      <td className="pr-3">
+                        <Badge variant={d.status === "available" ? "default" : d.status === "used" ? "secondary" : "destructive"}>
+                          {d.status}
+                        </Badge>
+                      </td>
+                      <td>
+                        {d.status === "available" && (
+                          <Button
+                            size="sm" variant="ghost"
+                            onClick={() => {
+                              if (confirm("Revoke this deal?")) {
+                                revokeMutation.mutate(d.id, { onSuccess: () => toast.success("Deal revoked") });
+                              }
+                            }}
+                            title="Revoke"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {coupons.length === 0 && (
-                  <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">No coupons yet. Create your first one!</td></tr>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {deals.length === 0 && (
+                  <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">No deals assigned yet.</td></tr>
                 )}
               </tbody>
             </table>
@@ -193,6 +308,100 @@ function AdminCoupons() {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+function AssignDealDialog({ coupons, onClose }: { coupons: Coupon[]; onClose: () => void }) {
+  const { data: users = [] } = useUsers();
+  const assignMutation = useAssignDeal();
+  const [selectedCoupon, setSelectedCoupon] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [expiresAt, setExpiresAt] = useState("");
+  const [search, setSearch] = useState("");
+
+  const members = users.filter((u) => u.role === "member");
+  const filtered = search
+    ? members.filter((u) => u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))
+    : members;
+
+  const toggleUser = (id: string) => {
+    setSelectedUsers((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
+  const assign = () => {
+    if (!selectedCoupon || selectedUsers.length === 0) return;
+    assignMutation.mutate(
+      { couponId: selectedCoupon, userIds: selectedUsers, expiresAt: expiresAt || undefined },
+      {
+        onSuccess: (data) => {
+          toast.success(`Assigned deal to ${data.created} user(s)`);
+          onClose();
+        },
+      },
+    );
+  };
+
+  return (
+    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogHeader><DialogTitle>Assign deal to users</DialogTitle></DialogHeader>
+
+      <div className="space-y-4">
+        {/* Coupon selection */}
+        <div>
+          <Label>Select coupon</Label>
+          <Select value={selectedCoupon} onValueChange={setSelectedCoupon}>
+            <SelectTrigger><SelectValue placeholder="Choose a coupon..." /></SelectTrigger>
+            <SelectContent>
+              {coupons.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.code} — {discountLabel(c)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Expiry */}
+        <div>
+          <Label>Deal expires (optional)</Label>
+          <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+        </div>
+
+        {/* User selection */}
+        <div>
+          <Label>Select users ({selectedUsers.length} selected)</Label>
+          <Input placeholder="Search by name or email..." value={search} onChange={(e) => setSearch(e.target.value)} className="mt-1.5" />
+
+          <div className="mt-2 flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setSelectedUsers(filtered.map((u) => u.id))}>Select all</Button>
+            <Button size="sm" variant="outline" onClick={() => setSelectedUsers([])}>Clear</Button>
+          </div>
+
+          <div className="mt-2 max-h-[240px] space-y-1 overflow-y-auto rounded-lg border p-2">
+            {filtered.map((u) => (
+              <label key={u.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent">
+                <Checkbox
+                  checked={selectedUsers.includes(u.id)}
+                  onCheckedChange={() => toggleUser(u.id)}
+                />
+                <span className="flex-1 truncate">{u.name}</span>
+                <span className="text-xs text-muted-foreground">{u.email}</span>
+              </label>
+            ))}
+            {filtered.length === 0 && (
+              <div className="py-4 text-center text-sm text-muted-foreground">No members found</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button onClick={assign} disabled={!selectedCoupon || selectedUsers.length === 0 || assignMutation.isPending}>
+          <Gift className="mr-1.5 h-4 w-4" />
+          Assign to {selectedUsers.length} user{selectedUsers.length !== 1 ? "s" : ""}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 

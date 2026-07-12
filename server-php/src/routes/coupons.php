@@ -198,3 +198,136 @@ $router->get('/api/dashboard/coupons/{id}/usages', function (array $params) use 
     $router->json($usages);
     return null;
 });
+
+// ─── GET /api/dashboard/me/deals ─────────────────
+// Authenticated user: list my available deals with coupon details.
+
+$router->get('/api/dashboard/me/deals', function () use ($db, $router) {
+    if (empty($_SESSION['userId'])) {
+        return $router->json(['error' => 'Not authenticated'], 401);
+    }
+
+    $deals = $db->where('user_deals', 'userId', $_SESSION['userId']);
+
+    // Auto-expire past-due deals
+    $now = gmdate('Y-m-d\TH:i:s\Z');
+    foreach ($deals as &$d) {
+        if ($d['status'] === 'available' && !empty($d['expiresAt']) && $d['expiresAt'] < $now) {
+            $d['status'] = 'expired';
+            $db->update('user_deals', $d['id'], ['status' => 'expired']);
+        }
+    }
+    unset($d);
+
+    // Enrich with coupon details
+    foreach ($deals as &$d) {
+        $coupon = $db->find('coupons', $d['couponId']);
+        $d['coupon'] = $coupon;
+    }
+    unset($d);
+
+    // Sort: available first, then used, then expired
+    usort($deals, function ($a, $b) {
+        $order = ['available' => 0, 'used' => 1, 'expired' => 2];
+        return ($order[$a['status']] ?? 3) - ($order[$b['status']] ?? 3);
+    });
+
+    $router->json($deals);
+    return null;
+});
+
+// ─── GET /api/dashboard/deals ────────────────────
+// Admin: list all user deals.
+
+$router->get('/api/dashboard/deals', function () use ($db, $router) {
+    $user = requireAuth($db, $router);
+    if (!$user) return null;
+    if (!requireRole($router, $user, ['super_admin', 'marketing'])) return null;
+
+    $deals = $db->all('user_deals');
+
+    // Enrich with coupon + user info
+    foreach ($deals as &$d) {
+        $coupon = $db->find('coupons', $d['couponId']);
+        $d['coupon'] = $coupon;
+        $usr = $db->find('users', $d['userId']);
+        $d['userName'] = $usr ? $usr['name'] : 'Unknown';
+    }
+    unset($d);
+
+    $router->json($deals);
+    return null;
+});
+
+// ─── POST /api/dashboard/deals ───────────────────
+// Admin: assign a deal (coupon) to one or more users.
+
+$router->post('/api/dashboard/deals', function () use ($db, $router) {
+    $user = requireAuth($db, $router);
+    if (!$user) return null;
+    if (!requireRole($router, $user, ['super_admin', 'marketing'])) return null;
+
+    $b = body();
+    $couponId = $b['couponId'] ?? '';
+    $userIds = $b['userIds'] ?? [];
+    $expiresAt = $b['expiresAt'] ?? null;
+
+    if (!$couponId || empty($userIds)) {
+        return $router->json(['error' => 'couponId and userIds are required'], 400);
+    }
+
+    $coupon = $db->find('coupons', $couponId);
+    if (!$coupon) {
+        return $router->json(['error' => 'Coupon not found'], 404);
+    }
+
+    $now = gmdate('c');
+    $created = [];
+    foreach ($userIds as $uid) {
+        // Check if user already has this deal available
+        $existing = $db->pdo()->prepare("SELECT id FROM user_deals WHERE userId = ? AND couponId = ? AND status = 'available'");
+        $existing->execute([$uid, $couponId]);
+        if ($existing->fetch()) {
+            continue; // Skip duplicate
+        }
+
+        $deal = [
+            'id'         => $db->uid('ud'),
+            'userId'     => $uid,
+            'couponId'   => $couponId,
+            'status'     => 'available',
+            'assignedBy' => $user['id'],
+            'assignedAt' => $now,
+            'expiresAt'  => $expiresAt,
+            'usedAt'     => null,
+        ];
+        $db->insert('user_deals', $deal);
+        $created[] = $deal;
+    }
+
+    $db->audit($user['id'], 'create', 'user_deal', $couponId, "Assigned deal to " . count($created) . " user(s)");
+
+    http_response_code(201);
+    $router->json(['created' => count($created), 'deals' => $created]);
+    return null;
+});
+
+// ─── DELETE /api/dashboard/deals/{id} ────────────
+// Admin: revoke a deal.
+
+$router->delete('/api/dashboard/deals/{id}', function (array $params) use ($db, $router) {
+    $user = requireAuth($db, $router);
+    if (!$user) return null;
+    if (!requireRole($router, $user, ['super_admin', 'marketing'])) return null;
+
+    $deal = $db->find('user_deals', $params['id']);
+    if (!$deal) {
+        return $router->json(['error' => 'Deal not found'], 404);
+    }
+
+    $db->update('user_deals', $params['id'], ['status' => 'expired']);
+    $db->audit($user['id'], 'delete', 'user_deal', $params['id'], 'Revoked deal');
+
+    $router->json(['ok' => true]);
+    return null;
+});

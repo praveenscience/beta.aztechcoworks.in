@@ -130,6 +130,22 @@ export interface CouponUsage {
   appliedAt: string;
 }
 
+export type UserDealStatus = "available" | "used" | "expired";
+
+export interface UserDeal {
+  id: string;
+  userId: string;
+  couponId: string;
+  status: UserDealStatus;
+  assignedBy: string;
+  assignedAt: string;
+  expiresAt?: string;
+  usedAt?: string;
+  // Enriched fields (from joins)
+  coupon?: Coupon;
+  userName?: string;
+}
+
 export interface Lead {
   id: string;
   name: string;

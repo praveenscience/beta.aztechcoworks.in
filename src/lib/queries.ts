@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
 import { trackEvent } from "./analytics";
 import type {
-  User, Branch, SeatInventory, MeetingRoom, Plan, Coupon,
+  User, Branch, SeatInventory, MeetingRoom, Plan, Coupon, UserDeal,
   Lead, LeadActivity, Task, SiteVisit, Membership,
   Booking, Invoice, Visitor, BlogPost, Testimonial,
 } from "@/types";
@@ -417,6 +417,39 @@ export function useDeleteCoupon() {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/api/dashboard/coupons/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "coupons"] }),
+  });
+}
+
+// ─── User Deals ─────────────────────────────────
+
+export function useMyDeals() {
+  return useQuery<UserDeal[]>({
+    queryKey: ["dashboard", "me", "deals"],
+    queryFn: () => api.get("/api/dashboard/me/deals"),
+  });
+}
+
+export function useAllDeals() {
+  return useQuery<UserDeal[]>({
+    queryKey: ["dashboard", "deals"],
+    queryFn: () => api.get("/api/dashboard/deals"),
+  });
+}
+
+export function useAssignDeal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { couponId: string; userIds: string[]; expiresAt?: string }) =>
+      api.post<{ created: number }>("/api/dashboard/deals", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "deals"] }),
+  });
+}
+
+export function useRevokeDeal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/dashboard/deals/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "deals"] }),
   });
 }
 

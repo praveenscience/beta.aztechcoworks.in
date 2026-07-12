@@ -162,6 +162,13 @@ final class Db
                 userId TEXT NOT NULL REFERENCES users(id), invoiceId TEXT NOT NULL,
                 discountAmount INTEGER NOT NULL, appliedAt TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS user_deals (
+                id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id),
+                couponId TEXT NOT NULL REFERENCES coupons(id),
+                status TEXT NOT NULL DEFAULT 'available',
+                assignedBy TEXT NOT NULL, assignedAt TEXT NOT NULL,
+                expiresAt TEXT, usedAt TEXT
+            );
             CREATE TABLE IF NOT EXISTS password_reset_tokens (
                 token TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id),
                 expiresAt TEXT NOT NULL
@@ -275,6 +282,11 @@ final class Db
         $cpStmt->execute(['cp_launch','LAUNCH26','Launch offer — 15% off everything','percentage',15,2000,'all','[]','[]','[]',0,0,0,100,1,0,0,$now,'2026-12-31','active','u_super',$now]);
         $cpStmt->execute(['cp_hotdesk','HOTDESK500','₹500 off Hot Desk plan','flat',500,null,'membership','["pl_hot"]','[]','[]',0,0,0,0,1,0,0,$now,'2027-12-31','active','u_super',$now]);
         $cpStmt->execute(['cp_trial','FREETRIAL7','7 free days on first membership','free_days',7,null,'membership','[]','[]','[]',0,0,1,200,1,0,0,$now,'2027-06-30','active','u_super',$now]);
+
+        // Seed user deals (assign deals to demo member)
+        $dealStmt = $this->pdo->prepare("INSERT INTO user_deals (id,userId,couponId,status,assignedBy,assignedAt,expiresAt) VALUES (?,?,?,?,?,?,?)");
+        $dealStmt->execute(['ud_1','u_member','cp_launch','available','u_super',$now,'2026-12-31']);
+        $dealStmt->execute(['ud_2','u_member','cp_hotdesk','available','u_super',$now,'2027-12-31']);
 
         $this->pdo->commit();
     }

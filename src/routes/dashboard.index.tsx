@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard-shell";
-import { Calendar, QrCode, Receipt, Gift, Building2 } from "lucide-react";
-import { useMe, useBranches, useMyMemberships, useMyInvoices, useMyBookings, usePlans } from "@/lib/queries";
+import { Calendar, QrCode, Receipt, Gift, Building2, Sparkles, Clock, CheckCircle2, Tag } from "lucide-react";
+import { useMe, useBranches, useMyMemberships, useMyInvoices, useMyBookings, usePlans, useMyDeals } from "@/lib/queries";
 import { inr } from "@/lib/format";
+import type { UserDeal } from "@/types";
 
 export const Route = createFileRoute("/dashboard/")({
   component: MemberOverview,
@@ -18,6 +19,7 @@ function MemberOverview() {
   const { data: invoices = [] } = useMyInvoices();
   const { data: bookings = [] } = useMyBookings();
   const { data: plans = [] } = usePlans();
+  const { data: deals = [] } = useMyDeals();
   if (!me) return null;
 
   const activeMemberships = memberships.filter((m) => m.status === "active");
@@ -70,6 +72,23 @@ function MemberOverview() {
         </Card>
       </div>
 
+      {/* My Deals */}
+      {deals.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-500" /> Deals for you</CardTitle>
+            <CardDescription>Exclusive offers assigned to your account. Apply at checkout!</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {deals.map((deal) => (
+                <DealCard key={deal.id} deal={deal} />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Recent invoices</CardTitle>
@@ -115,5 +134,66 @@ function QuickAction({ to, icon: Icon, label }: { to: string; icon: typeof Calen
     <Button asChild variant="outline" className="h-auto justify-start gap-2 py-3">
       <Link to={to}><Icon className="h-4 w-4" /> {label}</Link>
     </Button>
+  );
+}
+
+function DealCard({ deal }: { deal: UserDeal }) {
+  const c = deal.coupon;
+  if (!c) return null;
+
+  const isAvailable = deal.status === "available";
+  const isUsed = deal.status === "used";
+
+  const discountText =
+    c.discountType === "percentage" ? `${c.discountValue}% OFF` :
+    c.discountType === "flat" ? `${inr(c.discountValue)} OFF` :
+    `${c.discountValue} FREE DAYS`;
+
+  const scopeLabel =
+    c.serviceScope === "all" ? "All services" :
+    c.serviceScope === "membership" ? "Memberships" :
+    c.serviceScope === "meeting_room" ? "Meeting rooms" :
+    "Day passes";
+
+  return (
+    <div className={`relative overflow-hidden rounded-xl border-2 p-4 transition ${
+      isAvailable ? "border-amber-300 bg-amber-50/50 dark:border-amber-500/40 dark:bg-amber-950/20" :
+      isUsed ? "border-muted bg-muted/30 opacity-60" :
+      "border-muted bg-muted/20 opacity-40"
+    }`}>
+      {/* Status badge */}
+      <div className="mb-2 flex items-center justify-between">
+        <Badge variant={isAvailable ? "default" : "secondary"} className={isAvailable ? "bg-amber-500 hover:bg-amber-600" : ""}>
+          {isAvailable && <Tag className="mr-1 h-3 w-3" />}
+          {isUsed && <CheckCircle2 className="mr-1 h-3 w-3" />}
+          {deal.status === "expired" && <Clock className="mr-1 h-3 w-3" />}
+          {deal.status}
+        </Badge>
+        {deal.expiresAt && isAvailable && (
+          <span className="text-[11px] text-muted-foreground">
+            Expires {new Date(deal.expiresAt).toLocaleDateString("en-IN")}
+          </span>
+        )}
+      </div>
+
+      {/* Discount highlight */}
+      <div className="text-xl font-bold tracking-tight">{discountText}</div>
+      <div className="mt-0.5 text-sm text-muted-foreground">{scopeLabel}</div>
+
+      {/* Code */}
+      {isAvailable && (
+        <div className="mt-3 flex items-center gap-2">
+          <code className="rounded bg-background px-2 py-1 font-mono text-sm font-semibold tracking-wider">{c.code}</code>
+          <span className="text-xs text-muted-foreground">Use at checkout</span>
+        </div>
+      )}
+
+      {/* Used date */}
+      {isUsed && deal.usedAt && (
+        <div className="mt-2 text-xs text-muted-foreground">
+          Used on {new Date(deal.usedAt).toLocaleDateString("en-IN")}
+        </div>
+      )}
+    </div>
   );
 }
