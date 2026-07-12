@@ -95,6 +95,9 @@ function BranchDetail() {
 
   if (!branch) throw notFound();
 
+  // Combine cover + album photos, deduplicated
+  const allPhotos = [branch.photo, ...(branch.photos ?? []).filter((p) => p !== branch.photo)];
+
   const seatInventory = branch.seatInventory;
   const rooms = branch.meetingRooms;
 
@@ -118,8 +121,8 @@ function BranchDetail() {
 
   return (
       <main>
-        <section className="relative h-[420px] overflow-hidden">
-          <img src={unsplash(branch.photo, 1800, 900)} alt={branch.name} className="h-full w-full object-cover" width={1800} height={900} />
+        <section className="group relative h-[420px] cursor-pointer overflow-hidden" onClick={() => setLightbox(0)}>
+          <img src={photoSrc(branch.photo, 1800, 900)} alt={branch.name} className="h-full w-full object-cover transition group-hover:scale-[1.02]" width={1800} height={900} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 container mx-auto px-4 pb-10 text-white md:px-6">
             <Badge className="border-white/20 bg-white/10 text-white backdrop-blur">
@@ -132,21 +135,21 @@ function BranchDetail() {
 
         <section className="container mx-auto grid gap-10 px-4 py-12 md:px-6 lg:grid-cols-[2fr_1fr]">
           <div className="space-y-10">
-            {/* Photo gallery */}
-            {(branch.photos ?? []).length > 1 && (
+            {/* Photo gallery (skip cover since it's the hero) */}
+            {allPhotos.length > 1 && (
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight">Gallery</h2>
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {(branch.photos ?? []).map((p, i) => (
+                  {allPhotos.slice(1).map((p, i) => (
                     <button
                       key={i}
                       type="button"
-                      onClick={() => setLightbox(i)}
+                      onClick={() => setLightbox(i + 1)}
                       className="overflow-hidden rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <img
                         src={photoSrc(p)}
-                        alt={`${branch.name} photo ${i + 1}`}
+                        alt={`${branch.name} photo ${i + 2}`}
                         className="aspect-[4/3] w-full object-cover transition hover:scale-105"
                         loading="lazy"
                       />
@@ -156,9 +159,9 @@ function BranchDetail() {
               </div>
             )}
 
-            {lightbox !== null && (branch.photos ?? []).length > 0 && (
+            {lightbox !== null && (
               <Lightbox
-                photos={branch.photos!}
+                photos={allPhotos}
                 initial={lightbox}
                 branchName={branch.name}
                 onClose={() => setLightbox(null)}
