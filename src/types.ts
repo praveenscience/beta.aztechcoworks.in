@@ -294,6 +294,16 @@ export interface WorkflowRule {
   isActive: boolean;
 }
 
+export interface ClientLogo {
+  name: string;
+  logo: string;
+}
+
+export interface SiteSettings {
+  heroImages: string[];
+  clientLogos: ClientLogo[];
+}
+
 export interface BlogPost {
   id: string;
   slug: string;

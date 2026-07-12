@@ -21,6 +21,7 @@ import {
   Menu,
   Settings,
   Tag,
+  Globe,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ const navsByRole: Record<Role, NavItem[]> = {
     { to: "/admin/users", label: "Users & roles", icon: Users },
     { to: "/admin/forms", label: "Forms", icon: ListTree },
     { to: "/admin/workflows", label: "Workflows", icon: Workflow },
+    { to: "/admin/site", label: "Site settings", icon: Globe },
     { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
     { to: "/staff/sales", label: "Sales pipeline", icon: KanbanSquare },
     { to: "/staff/reception", label: "Reception", icon: ScanLine },

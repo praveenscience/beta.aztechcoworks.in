@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useBranches, usePlans, useTestimonials } from "@/lib/queries";
+import { useBranches, usePlans, useTestimonials, useSiteSettings } from "@/lib/queries";
 import { unsplash, whatsappLink, inr } from "@/lib/format";
 import { useCounter } from "@/hooks/use-counter";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
@@ -45,6 +45,13 @@ function Home() {
   const { data: branches = [] } = useBranches();
   const { data: plans = [] } = usePlans();
   const { data: testimonials = [] } = useTestimonials();
+  const { data: siteSettings } = useSiteSettings();
+  const heroImages = siteSettings?.heroImages?.length
+    ? siteSettings.heroImages
+    : ["photo-1497366216548-37526070297c", "photo-1556761175-5973dc0f32e7", "photo-1604328698692-f76ea9498e76"];
+  const clientLogos = siteSettings?.clientLogos?.length
+    ? siteSettings.clientLogos
+    : [{ name: "Loop Analytics", logo: "" }, { name: "Cibyl Studios", logo: "" }, { name: "Northwind Labs", logo: "" }, { name: "OrangeFin", logo: "" }, { name: "Indigo Code", logo: "" }, { name: "BrewLab", logo: "" }];
   const totalSeats = branches.reduce((a, b) => a + b.totalSeats, 0);
   const avail = branches.reduce((a, b) => a + b.availableSeats, 0);
 
@@ -109,7 +116,7 @@ function Home() {
               <div className="absolute -bottom-12 -right-12 h-72 w-72 rounded-full bg-white/20 blur-3xl" />
               <div className="relative grid grid-cols-2 gap-3">
                 <img
-                  src={unsplash("photo-1497366216548-37526070297c", 700, 900)}
+                  src={unsplash(heroImages[0] ?? "", 700, 900)}
                   alt="Modern coworking lounge"
                   className="aspect-[3/4] w-full rounded-2xl object-cover shadow-elegant"
                   loading="eager"
@@ -117,22 +124,26 @@ function Home() {
                   height={900}
                 />
                 <div className="space-y-3 pt-10">
-                  <img
-                    src={unsplash("photo-1556761175-5973dc0f32e7", 700, 500)}
-                    alt="Meeting room"
-                    className="aspect-[4/3] w-full rounded-2xl object-cover shadow-elegant"
-                    loading="eager"
-                    width={700}
-                    height={500}
-                  />
-                  <img
-                    src={unsplash("photo-1604328698692-f76ea9498e76", 700, 500)}
-                    alt="Cafeteria"
-                    className="aspect-[4/3] w-full rounded-2xl object-cover shadow-elegant"
-                    loading="lazy"
-                    width={700}
-                    height={500}
-                  />
+                  {heroImages[1] && (
+                    <img
+                      src={unsplash(heroImages[1], 700, 500)}
+                      alt="Meeting room"
+                      className="aspect-[4/3] w-full rounded-2xl object-cover shadow-elegant"
+                      loading="eager"
+                      width={700}
+                      height={500}
+                    />
+                  )}
+                  {heroImages[2] && (
+                    <img
+                      src={unsplash(heroImages[2], 700, 500)}
+                      alt="Workspace"
+                      className="aspect-[4/3] w-full rounded-2xl object-cover shadow-elegant"
+                      loading="lazy"
+                      width={700}
+                      height={500}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -140,22 +151,34 @@ function Home() {
         </section>
 
         {/* ─── TRUSTED BY ─── */}
-        <section className="border-b border-border/60 bg-secondary/30 py-8">
-          <div className="container mx-auto px-4 md:px-6">
-            <p className="mb-5 text-center text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              Trusted by teams at
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 opacity-60 grayscale">
-              {["Loop Analytics", "Cibyl Studios", "Northwind Labs", "OrangeFin", "Indigo Code", "BrewLab"].map(
-                (name) => (
-                  <span key={name} className="text-sm font-semibold tracking-tight text-foreground">
-                    {name}
-                  </span>
-                ),
-              )}
+        {clientLogos.length > 0 && (
+          <section className="border-b border-border/60 bg-secondary/30 py-8">
+            <div className="container mx-auto px-4 md:px-6">
+              <p className="mb-5 text-center text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                Trusted by teams at
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 opacity-60 grayscale">
+                {clientLogos.map((client) => (
+                  <div key={client.name} className="flex items-center gap-2">
+                    {client.logo && (
+                      <img
+                        src={unsplash(client.logo)}
+                        alt={client.name}
+                        className="h-8 w-auto object-contain"
+                        loading="lazy"
+                      />
+                    )}
+                    {(!client.logo || client.name) && (
+                      <span className="text-sm font-semibold tracking-tight text-foreground">
+                        {client.name}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ─── BRANCHES ─── */}
         <section ref={branchesRef} className="container mx-auto px-4 py-16 opacity-0 md:px-6 md:py-24">

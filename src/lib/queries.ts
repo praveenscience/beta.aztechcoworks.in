@@ -4,7 +4,7 @@ import { trackEvent } from "./analytics";
 import type {
   User, Branch, SeatInventory, MeetingRoom, Plan, Coupon, UserDeal,
   Lead, LeadActivity, Task, SiteVisit, Membership,
-  Booking, Invoice, Visitor, BlogPost, Testimonial,
+  Booking, Invoice, Visitor, BlogPost, Testimonial, SiteSettings,
 } from "@/types";
 
 // Strip passwordHash from server User type
@@ -117,6 +117,32 @@ export function useTestimonials() {
     queryKey: ["testimonials"],
     queryFn: () => api.get("/api/testimonials"),
     staleTime: 60_000,
+  });
+}
+
+export function useSiteSettings() {
+  return useQuery<SiteSettings>({
+    queryKey: ["site-settings"],
+    queryFn: () => api.get("/api/site-settings"),
+    staleTime: 60_000,
+  });
+}
+
+export function useUpdateHeroImages() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (heroImages: string[]) =>
+      api.patch<{ heroImages: string[] }>("/api/dashboard/site-settings/hero-images", { heroImages }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["site-settings"] }),
+  });
+}
+
+export function useUpdateClientLogos() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (clientLogos: { name: string; logo: string }[]) =>
+      api.patch<{ clientLogos: { name: string; logo: string }[] }>("/api/dashboard/site-settings/client-logos", { clientLogos }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["site-settings"] }),
   });
 }
 

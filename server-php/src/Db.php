@@ -180,6 +180,11 @@ final class Db
                 amount INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'created',
                 createdAt TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS site_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT '[]',
+                updatedAt TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS audit_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId TEXT NOT NULL, action TEXT NOT NULL,
@@ -288,6 +293,22 @@ final class Db
         $dealStmt->execute(['ud_1','u_member','cp_launch','available','u_super',$now,'2026-12-31']);
         $dealStmt->execute(['ud_2','u_member','cp_hotdesk','available','u_super',$now,'2027-12-31']);
 
+        // Seed site settings
+        $ssStmt = $this->pdo->prepare("INSERT INTO site_settings (key,value,updatedAt) VALUES (?,?,?)");
+        $ssStmt->execute(['hero_images', json_encode([
+            'photo-1497366216548-37526070297c',
+            'photo-1556761175-5973dc0f32e7',
+            'photo-1604328698692-f76ea9498e76',
+        ]), $now]);
+        $ssStmt->execute(['client_logos', json_encode([
+            ['name' => 'Loop Analytics', 'logo' => ''],
+            ['name' => 'Cibyl Studios', 'logo' => ''],
+            ['name' => 'Northwind Labs', 'logo' => ''],
+            ['name' => 'OrangeFin', 'logo' => ''],
+            ['name' => 'Indigo Code', 'logo' => ''],
+            ['name' => 'BrewLab', 'logo' => ''],
+        ]), $now]);
+
         $this->pdo->commit();
     }
 
@@ -393,6 +414,11 @@ final class Db
     }
 
     /** Insert an audit log entry */
+    public function audit(string $userId, string $action, string $entityType, ?string $entityId = null, ?string $detail = null): void
+    {
+        $this->insertAuditLog($userId, $action, $entityType, $entityId, $detail);
+    }
+
     public function insertAuditLog(string $userId, string $action, string $entityType, ?string $entityId = null, ?string $detail = null): void
     {
         $stmt = $this->pdo->prepare("INSERT INTO audit_logs (userId, action, entityType, entityId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?)");
@@ -405,6 +431,25 @@ final class Db
         $stmt = $this->pdo->prepare("SELECT * FROM audit_logs ORDER BY id DESC LIMIT ?");
         $stmt->execute([$limit]);
         return $stmt->fetchAll();
+    }
+
+    // ─── Site settings ────────────────────────────
+
+    public function getSetting(string $key): mixed
+    {
+        $stmt = $this->pdo->prepare("SELECT value FROM site_settings WHERE key = ?");
+        $stmt->execute([$key]);
+        $val = $stmt->fetchColumn();
+        if ($val === false) return null;
+        return json_decode($val, true);
+    }
+
+    public function setSetting(string $key, mixed $value): void
+    {
+        $json = json_encode($value);
+        $now = gmdate('c');
+        $this->pdo->prepare("INSERT INTO site_settings (key,value,updatedAt) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updatedAt=excluded.updatedAt")
+            ->execute([$key, $json, $now]);
     }
 
     // ─── JSON & boolean encoding ────────────────

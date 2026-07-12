@@ -62,6 +62,14 @@ const getRoutes: [RegExp, RouteHandler][] = [
   }],
   [/^\/api\/dashboard\/deals$/, () => []],
   [/^\/api\/dashboard\/coupons$/, () => []],
+  [/^\/api\/site-settings$/, () => ({
+    heroImages: ["photo-1497366216548-37526070297c", "photo-1556761175-5973dc0f32e7", "photo-1604328698692-f76ea9498e76"],
+    clientLogos: [
+      { name: "Loop Analytics", logo: "" }, { name: "Cibyl Studios", logo: "" },
+      { name: "Northwind Labs", logo: "" }, { name: "OrangeFin", logo: "" },
+      { name: "Indigo Code", logo: "" }, { name: "BrewLab", logo: "" },
+    ],
+  })],
   [/^\/api\/payments\/key$/, () => ({ key: "" })],
   [/^\/api\/payments\/history$/, () => []],
 ];
@@ -151,6 +159,8 @@ const patchRoutes: [RegExp, RouteHandler][] = [
   [/^\/api\/dashboard\/plans\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
   [/^\/api\/dashboard\/users\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
   [/^\/api\/dashboard\/coupons\/([^/]+)$/, (p, body: any) => ({ id: p[0], ...body })],
+  [/^\/api\/dashboard\/site-settings\/hero-images$/, (_p, body: any) => ({ heroImages: body?.heroImages ?? [] })],
+  [/^\/api\/dashboard\/site-settings\/client-logos$/, (_p, body: any) => ({ clientLogos: body?.clientLogos ?? [] })],
 ];
 
 const deleteRoutes: [RegExp, RouteHandler][] = [
