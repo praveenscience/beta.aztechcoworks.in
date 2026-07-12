@@ -13,6 +13,14 @@ import {
   Clock,
   Shield,
   Quote,
+  IndianRupee,
+  Lock,
+  UtensilsCrossed,
+  Presentation,
+  MonitorSpeaker,
+  CupSoda,
+  SprayCan,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +66,7 @@ function Home() {
   const branchesRef = useScrollReveal<HTMLElement>();
   const pricingRef = useScrollReveal<HTMLElement>();
   const amenitiesRef = useScrollReveal<HTMLElement>();
+  const facilitiesRef = useScrollReveal<HTMLElement>();
   const testimonialsRef = useScrollReveal<HTMLElement>();
 
   return (
@@ -327,6 +336,30 @@ function Home() {
           </div>
         </section>
 
+        {/* ─── FACILITIES ─── */}
+        <section ref={facilitiesRef} className="bg-secondary/40 py-16 opacity-0 md:py-24">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center">
+              <Badge variant="outline" className="mb-3">Facilities</Badge>
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Extra facilities</h2>
+              <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+                Beyond workstations — everything you need for a seamless, productive day, every day.
+              </p>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Facility icon={Wifi} title="Hi-Speed WiFi" desc="Stay connected with our high-speed WiFi and ensure you work smoothly." />
+              <Facility icon={IndianRupee} title="Money saver" desc="Affordable, flexible workspace that fulfils your professional needs without compromising quality." />
+              <Facility icon={Lock} title="Secure place" desc="Work in a secure environment with modern security measures to protect your belongings and you." />
+              <Facility icon={UtensilsCrossed} title="Cafeteria" desc="Recharge yourself in our on-site cafeteria with various refreshment options." />
+              <Facility icon={Users} title="Meeting room" desc="Brainstorm with your team in our meeting rooms designed for productive discussions." />
+              <Facility icon={MonitorSpeaker} title="Conference room" desc="Host presentations and client meetings in our conference room for impactful business interactions." />
+              <Facility icon={CupSoda} title="Hot beverages" desc="Enjoy complimentary hot beverages during your break." />
+              <Facility icon={SprayCan} title="Daily cleaning" desc="Daily cleaning services to ensure cleanliness and freshness in our workspace." />
+              <Facility icon={Wrench} title="24/7 Maintenance support" desc="Our support team is available 24/7 to provide instant solutions to maintenance needs." />
+            </div>
+          </div>
+        </section>
+
         {/* ─── TESTIMONIALS ─── */}
         <section ref={testimonialsRef} className="bg-secondary/40 py-16 opacity-0 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
@@ -430,5 +463,29 @@ function Amenity({
         <div className="text-xs text-muted-foreground">{desc}</div>
       </div>
     </div>
+  );
+}
+
+function Facility({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: typeof Sparkles;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <Card className="border-border/60 bg-card transition hover:shadow-elegant">
+      <CardContent className="flex items-start gap-4 pt-6">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="font-semibold">{title}</div>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
