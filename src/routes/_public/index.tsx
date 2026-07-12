@@ -21,12 +21,16 @@ import {
   CupSoda,
   SprayCan,
   Wrench,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useBranches, usePlans, useTestimonials, useSiteSettings } from "@/lib/queries";
 import { unsplash, whatsappLink, inr } from "@/lib/format";
+import { useState, useEffect, useCallback } from "react";
 import { useCounter } from "@/hooks/use-counter";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
@@ -67,6 +71,7 @@ function Home() {
   const pricingRef = useScrollReveal<HTMLElement>();
   const amenitiesRef = useScrollReveal<HTMLElement>();
   const facilitiesRef = useScrollReveal<HTMLElement>();
+  const galleryRef = useScrollReveal<HTMLElement>();
   const testimonialsRef = useScrollReveal<HTMLElement>();
 
   return (
@@ -360,6 +365,18 @@ function Home() {
           </div>
         </section>
 
+        {/* ─── GALLERY ─── */}
+        <section ref={galleryRef} className="container mx-auto px-4 py-16 opacity-0 md:px-6 md:py-24">
+          <div className="text-center">
+            <Badge variant="outline" className="mb-3">Gallery</Badge>
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">A peek inside our spaces</h2>
+            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+              Modern interiors, natural light, and vibrant community areas across all six branches.
+            </p>
+          </div>
+          <Gallery />
+        </section>
+
         {/* ─── TESTIMONIALS ─── */}
         <section ref={testimonialsRef} className="bg-secondary/40 py-16 opacity-0 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
@@ -463,6 +480,91 @@ function Amenity({
         <div className="text-xs text-muted-foreground">{desc}</div>
       </div>
     </div>
+  );
+}
+
+const GALLERY_PHOTOS = [
+  { id: "photo-1497366216548-37526070297c", alt: "Open coworking space", span: "col-span-2 row-span-2" },
+  { id: "photo-1556761175-5973dc0f32e7", alt: "Collaborative meeting", span: "" },
+  { id: "photo-1604328698692-f76ea9498e76", alt: "Cafeteria lounge", span: "" },
+  { id: "photo-1497366754035-f200968a6e72", alt: "Private cabins", span: "" },
+  { id: "photo-1568992687947-868a62a9f521", alt: "Focus zone", span: "col-span-2" },
+  { id: "photo-1555396273-367ea4eb4db5", alt: "Hot desks area", span: "" },
+  { id: "photo-1524758631624-e2822e304c36", alt: "Reception area", span: "" },
+  { id: "photo-1600508774634-4e11d34730e2", alt: "Conference room", span: "col-span-2" },
+];
+
+function Gallery() {
+  const [lightbox, setLightbox] = useState(-1);
+
+  const close = useCallback(() => setLightbox(-1), []);
+  const prev = useCallback(() => setLightbox((i) => (i - 1 + GALLERY_PHOTOS.length) % GALLERY_PHOTOS.length), []);
+  const next = useCallback(() => setLightbox((i) => (i + 1) % GALLERY_PHOTOS.length), []);
+
+  useEffect(() => {
+    if (lightbox < 0) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handler);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handler);
+    };
+  }, [lightbox, close, prev, next]);
+
+  return (
+    <>
+      <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        {GALLERY_PHOTOS.map((photo, i) => (
+          <button
+            key={photo.id}
+            onClick={() => setLightbox(i)}
+            className={`group relative overflow-hidden rounded-2xl ${photo.span}`}
+          >
+            <img
+              src={unsplash(photo.id, 800, 600)}
+              alt={photo.alt}
+              className="aspect-[4/3] h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              loading="lazy"
+              width={800}
+              height={600}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+            <div className="absolute bottom-3 left-3 rounded-full bg-black/50 px-3 py-1 text-xs font-medium text-white opacity-0 backdrop-blur transition group-hover:opacity-100">
+              {photo.alt}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Lightbox */}
+      {lightbox >= 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm" onClick={close}>
+          <button onClick={close} className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20" aria-label="Close">
+            <X className="h-6 w-6" />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); prev(); }} className="absolute left-4 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20" aria-label="Previous">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); next(); }} className="absolute right-4 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20" aria-label="Next">
+            <ChevronRight className="h-6 w-6" />
+          </button>
+          <img
+            src={unsplash(GALLERY_PHOTOS[lightbox].id, 1600, 1200)}
+            alt={GALLERY_PHOTOS[lightbox].alt}
+            className="max-h-[85vh] max-w-[90vw] rounded-xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-sm text-white backdrop-blur">
+            {GALLERY_PHOTOS[lightbox].alt} · {lightbox + 1} / {GALLERY_PHOTOS.length}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
