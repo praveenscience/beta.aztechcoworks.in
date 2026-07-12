@@ -72,6 +72,38 @@ router.post("/logout", (req, res) => {
   });
 });
 
+// POST /api/auth/change-password — authenticated password change
+router.post("/change-password", (req, res) => {
+  if (!req.session.userId) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ error: "Current and new password required" });
+    return;
+  }
+  if (newPassword.length < 6) {
+    res.status(400).json({ error: "New password must be at least 6 characters" });
+    return;
+  }
+
+  const user = db.users.find(req.session.userId);
+  if (!user) {
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+
+  if (!verifyPassword(currentPassword, user.passwordHash)) {
+    res.status(403).json({ error: "Current password is incorrect" });
+    return;
+  }
+
+  db.users.updatePassword(user.id, hashPassword(newPassword));
+  res.json({ ok: true });
+});
+
 // POST /api/auth/forgot-password — send reset link
 router.post("/forgot-password", validate(forgotPasswordSchema), (req, res) => {
   const { email } = req.body;

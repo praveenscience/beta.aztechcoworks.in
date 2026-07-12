@@ -72,6 +72,36 @@ $router->post('/api/auth/logout', function () use ($router) {
     return null;
 });
 
+// ─── POST /api/auth/change-password ─────────────
+
+$router->post('/api/auth/change-password', function () use ($db, $router) {
+    if (empty($_SESSION['userId'])) {
+        return $router->json(['error' => 'Not authenticated'], 401);
+    }
+
+    $b = body();
+    if (empty($b['currentPassword']) || empty($b['newPassword'])) {
+        return $router->json(['error' => 'Current and new password required'], 400);
+    }
+
+    if (strlen($b['newPassword']) < 6) {
+        return $router->json(['error' => 'New password must be at least 6 characters'], 400);
+    }
+
+    $user = $db->find('users', $_SESSION['userId']);
+    if (!$user) {
+        return $router->json(['error' => 'User not found'], 401);
+    }
+
+    if (!$db->verifyPassword($b['currentPassword'], $user['passwordHash'])) {
+        return $router->json(['error' => 'Current password is incorrect'], 403);
+    }
+
+    $db->update('users', $user['id'], ['passwordHash' => $db->hashPassword($b['newPassword'])]);
+    $router->json(['ok' => true]);
+    return null;
+});
+
 // ─── POST /api/auth/forgot-password ─────────────
 
 $router->post('/api/auth/forgot-password', function () use ($db, $router, $email) {

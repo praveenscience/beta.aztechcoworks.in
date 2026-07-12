@@ -19,6 +19,7 @@ import {
   LogOut,
   CircleUser,
   Menu,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -44,24 +45,31 @@ const navsByRole: Record<Role, NavItem[]> = {
     { to: "/dashboard/visitors", label: "Visitors", icon: QrCode },
     { to: "/dashboard/referrals", label: "Referrals", icon: Gift },
     { to: "/dashboard/community", label: "Community", icon: Users },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   reception: [
     { to: "/staff/reception", label: "Reception desk", icon: ScanLine },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   sales_exec: [
     { to: "/staff/sales", label: "Pipeline", icon: KanbanSquare },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   sales_manager: [
     { to: "/staff/sales", label: "Pipeline", icon: KanbanSquare },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   branch_manager: [
     { to: "/staff/branch", label: "Branch ops", icon: Building2 },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   finance: [
     { to: "/staff/finance", label: "Finance", icon: Wallet },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   marketing: [
     { to: "/staff/marketing", label: "Marketing", icon: Megaphone },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   super_admin: [
     { to: "/admin/branches", label: "Branches", icon: Building2 },
@@ -75,6 +83,7 @@ const navsByRole: Record<Role, NavItem[]> = {
     { to: "/staff/finance", label: "Finance", icon: Wallet },
     { to: "/staff/marketing", label: "Marketing", icon: Megaphone },
     { to: "/staff/branch", label: "Branch ops", icon: Building2 },
+    { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
 };
 
