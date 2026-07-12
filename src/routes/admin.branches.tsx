@@ -168,11 +168,7 @@ function PhotoUploader({ branchId, photos, cover, onUpdate }: {
     onUpdate(photos, url);
   };
 
-  // Resolve photo src: /photos/... needs API_BASE prefix, full URLs stay as-is
-  const photoSrc = (url: string) => {
-    if (url.startsWith("/")) return `${API_BASE}${url}`;
-    return unsplash(url, 300, 200);
-  };
+  const photoThumb = (url: string) => unsplash(url, 300, 200);
 
   return (
     <div className="space-y-3">
@@ -218,7 +214,7 @@ function PhotoUploader({ branchId, photos, cover, onUpdate }: {
               const isUploaded = url.startsWith("/");
               return (
                 <div key={url} className="group relative aspect-[4/3] overflow-hidden rounded-lg border">
-                  <img src={photoSrc(url)} alt="" className="h-full w-full object-cover" />
+                  <img src={photoThumb(url)} alt="" className="h-full w-full object-cover" />
                   {/* Cover badge */}
                   {url === cover && (
                     <span className="absolute top-1 left-1 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400">

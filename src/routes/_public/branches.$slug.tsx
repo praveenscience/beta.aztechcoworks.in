@@ -12,12 +12,6 @@ import { toast } from "sonner";
 import { useBranch, usePlans, useCreateLead } from "@/lib/queries";
 import { unsplash, inr, whatsappLink, seatTypeLabels } from "@/lib/format";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
-function photoSrc(url: string, w = 800, h = 500) {
-  if (url.startsWith("/")) return `${API_BASE}${url}`;
-  return unsplash(url, w, h);
-}
-
 export const Route = createFileRoute("/_public/branches/$slug")({
   component: BranchDetail,
 });
@@ -69,7 +63,7 @@ function Lightbox({ photos, initial, branchName, onClose }: {
 
         {/* Image */}
         <img
-          src={photoSrc(photos[idx], 1600, 1000)}
+          src={unsplash(photos[idx], 1600, 1000)}
           alt={`${branchName} photo ${idx + 1}`}
           className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
         />
@@ -122,7 +116,7 @@ function BranchDetail() {
   return (
       <main>
         <section className="group relative h-[420px] cursor-pointer overflow-hidden" onClick={() => setLightbox(0)}>
-          <img src={photoSrc(branch.photo, 1800, 900)} alt={branch.name} className="h-full w-full object-cover transition group-hover:scale-[1.02]" width={1800} height={900} />
+          <img src={unsplash(branch.photo, 1800, 900)} alt={branch.name} className="h-full w-full object-cover transition group-hover:scale-[1.02]" width={1800} height={900} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 container mx-auto px-4 pb-10 text-white md:px-6">
             <Badge className="border-white/20 bg-white/10 text-white backdrop-blur">
@@ -148,7 +142,7 @@ function BranchDetail() {
                       className="overflow-hidden rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <img
-                        src={photoSrc(p)}
+                        src={unsplash(p)}
                         alt={`${branch.name} photo ${i + 2}`}
                         className="aspect-[4/3] w-full object-cover transition hover:scale-105"
                         loading="lazy"
