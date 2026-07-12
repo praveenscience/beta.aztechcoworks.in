@@ -293,7 +293,7 @@ final class Db
         $data = $this->encodeRow($table, $data);
         $cols = implode(',', array_keys($data));
         $placeholders = implode(',', array_fill(0, count($data), '?'));
-        $stmt = $this->pdo->prepare("INSERT INTO $table ($cols) VALUES ($placeholders)");
+        $stmt = $this->pdo->prepare("INSERT OR REPLACE INTO $table ($cols) VALUES ($placeholders)");
         $stmt->execute(array_values($data));
     }
 

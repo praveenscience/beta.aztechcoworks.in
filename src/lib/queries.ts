@@ -354,10 +354,9 @@ export function useUpsertBranch() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: Branch) => {
-      const isNew = !data.id || data.id.startsWith("br_") && data.id.length < 8;
-      return isNew
-        ? api.post<Branch>("/api/dashboard/branches", data)
-        : api.patch<Branch>(`/api/dashboard/branches/${data.id}`, data);
+      return data.id
+        ? api.patch<Branch>(`/api/dashboard/branches/${data.id}`, data)
+        : api.post<Branch>("/api/dashboard/branches", data);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard", "all-branches"] });
