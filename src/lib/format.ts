@@ -43,7 +43,10 @@ export function inr(n: number) {
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+const PLACEHOLDER = "https://i.sstatic.net/cw4XkwQgl.png";
+
 export function unsplash(id: string, w = 1200, h = 800) {
+  if (!id) return PLACEHOLDER;
   if (id.startsWith("http")) return id;
   if (id.startsWith("/")) return `${API_BASE}${id}`;
   return `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=80`;

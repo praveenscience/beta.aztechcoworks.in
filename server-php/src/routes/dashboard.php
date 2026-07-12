@@ -593,7 +593,7 @@ $router->delete('/api/dashboard/branches/{id}/photos', function (array $params) 
     // If deleted photo was cover, use first remaining or fallback
     $cover = $branch['photo'];
     if ($cover === $photoUrl) {
-        $cover = $photos[0] ?? 'photo-1497366216548-37526070297c';
+        $cover = $photos[0] ?? '';
     }
 
     $db->update('branches', $params['id'], [
