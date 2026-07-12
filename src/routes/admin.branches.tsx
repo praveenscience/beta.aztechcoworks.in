@@ -209,43 +209,51 @@ function PhotoUploader({ branchId, photos, cover, onUpdate }: {
         />
       </div>
 
-      {/* Photo grid */}
-      {photos.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          {photos.map((url) => (
-            <div key={url} className="group relative aspect-[4/3] overflow-hidden rounded-lg border">
-              <img src={photoSrc(url)} alt="" className="h-full w-full object-cover" />
-              {/* Cover badge */}
-              {url === cover && (
-                <span className="absolute top-1 left-1 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400">
-                  <Star className="h-2.5 w-2.5 fill-amber-400" /> Cover
-                </span>
-              )}
-              {/* Hover actions */}
-              <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
-                {url !== cover && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); setCover(url); }}
-                    className="rounded-full bg-white/90 p-1.5 text-xs shadow hover:bg-white"
-                    title="Set as cover"
-                  >
-                    <Star className="h-3.5 w-3.5" />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); deletePhoto(url); }}
-                  className="rounded-full bg-white/90 p-1.5 text-xs shadow hover:bg-red-100"
-                  title="Remove"
-                >
-                  <X className="h-3.5 w-3.5 text-destructive" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Photo grid — include cover even if not in photos array */}
+      {(() => {
+        const allPhotos = cover && !photos.includes(cover) ? [cover, ...photos] : photos;
+        return allPhotos.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {allPhotos.map((url) => {
+              const isUploaded = url.startsWith("/");
+              return (
+                <div key={url} className="group relative aspect-[4/3] overflow-hidden rounded-lg border">
+                  <img src={photoSrc(url)} alt="" className="h-full w-full object-cover" />
+                  {/* Cover badge */}
+                  {url === cover && (
+                    <span className="absolute top-1 left-1 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400">
+                      <Star className="h-2.5 w-2.5 fill-amber-400" /> Cover
+                    </span>
+                  )}
+                  {/* Hover actions */}
+                  <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
+                    {url !== cover && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setCover(url); }}
+                        className="rounded-full bg-white/90 p-1.5 text-xs shadow hover:bg-white"
+                        title="Set as cover"
+                      >
+                        <Star className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    {isUploaded && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); deletePhoto(url); }}
+                        className="rounded-full bg-white/90 p-1.5 text-xs shadow hover:bg-red-100"
+                        title="Remove"
+                      >
+                        <X className="h-3.5 w-3.5 text-destructive" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }
