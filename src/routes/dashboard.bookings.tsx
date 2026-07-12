@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useMe, useBranches, useMyBookings, useCreateBooking, useCreateInvoice, useMeetingRooms } from "@/lib/queries";
 import { inr } from "@/lib/format";
 import { payInvoice } from "@/lib/razorpay";
+import { CouponInput, type ValidatedCoupon } from "@/components/coupon-input";
 
 export const Route = createFileRoute("/dashboard/bookings")({
   component: BookingsPage,
@@ -32,10 +33,23 @@ function BookingsPage() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [start, setStart] = useState("10:00");
   const [hours, setHours] = useState(1);
+  const [roomCoupon, setRoomCoupon] = useState<ValidatedCoupon | null>(null);
+  const [dayPassCoupon, setDayPassCoupon] = useState<ValidatedCoupon | null>(null);
 
   const branchRooms = rooms.filter((r) => r.branchId === branchId);
   const room = rooms.find((r) => r.id === roomId);
   const amount = room ? room.hourlyPrice * hours : 0;
+
+  const roomDiscount = roomCoupon?.discountAmount ?? 0;
+  const roomSubtotal = Math.max(0, amount - roomDiscount);
+  const roomGst = Math.round(roomSubtotal * 0.18);
+  const roomTotal = roomSubtotal + roomGst;
+
+  const dayPassBase = 350;
+  const dayPassDiscount = dayPassCoupon?.discountAmount ?? 0;
+  const dayPassSubtotal = Math.max(0, dayPassBase - dayPassDiscount);
+  const dayPassGst = Math.round(dayPassSubtotal * 0.18);
+  const dayPassTotal = dayPassSubtotal + dayPassGst;
 
   if (!me) return null;
 
@@ -46,9 +60,9 @@ function BookingsPage() {
     }
     const startAt = new Date(`${date}T${start}:00`);
     const endAt = new Date(startAt.getTime() + hours * 3600 * 1000);
-    const subtotal = amount;
-    const gst = Math.round(subtotal * 0.18);
-    const total = subtotal + gst;
+    const subtotal = roomSubtotal;
+    const gst = roomGst;
+    const total = roomTotal;
 
     setPaying(true);
     try {
@@ -71,13 +85,14 @@ function BookingsPage() {
       // 2. Create invoice
       const invoice = await new Promise<any>((resolve, reject) => {
         createInvoiceMutation.mutate(
-          { userId: me.id, bookingId: booking.id, subtotal, gst, total },
+          { userId: me.id, bookingId: booking.id, couponId: roomCoupon?.couponId, discountAmount: roomDiscount, subtotal, gst, total },
           { onSuccess: resolve, onError: reject },
         );
       });
 
       // 3. Pay via Razorpay
       await payInvoice(invoice.id, { name: me.name, email: me.email, phone: me.phone });
+      setRoomCoupon(null);
       toast.success(`${room.name} booked and paid! ${inr(total)} including GST.`);
     } catch (err: any) {
       if (err.message === "Payment cancelled") {
@@ -125,13 +140,33 @@ function BookingsPage() {
               <div><Label>Date</Label><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
               <div><Label>Start time</Label><Input type="time" value={start} onChange={(e) => setStart(e.target.value)} /></div>
               <div><Label>Duration (hrs)</Label><Input type="number" min={1} max={8} value={hours} onChange={(e) => setHours(Number(e.target.value))} /></div>
-              <div className="rounded-lg border bg-secondary/40 p-4">
-                <div className="text-xs uppercase text-muted-foreground">Total (incl. 18% GST)</div>
-                <div className="mt-1 text-2xl font-bold">{inr(Math.round(amount * 1.18))}</div>
-              </div>
             </div>
+
+            {/* Coupon */}
+            <div className="mt-4">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">Have a coupon?</Label>
+              <CouponInput
+                serviceScope="meeting_room"
+                branchId={branchId}
+                subtotal={amount}
+                onApplied={setRoomCoupon}
+              />
+            </div>
+
+            {/* Price breakdown */}
+            {room && (
+              <div className="mt-4 space-y-1 rounded-lg border bg-secondary/40 p-4 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal ({hours}h × {inr(room.hourlyPrice)})</span><span>{inr(amount)}</span></div>
+                {roomDiscount > 0 && (
+                  <div className="flex justify-between text-green-600 dark:text-green-400"><span>Discount ({roomCoupon?.code})</span><span>−{inr(roomDiscount)}</span></div>
+                )}
+                <div className="flex justify-between"><span className="text-muted-foreground">GST (18%)</span><span>{inr(roomGst)}</span></div>
+                <div className="flex justify-between border-t pt-1 font-semibold"><span>Total</span><span>{inr(roomTotal)}</span></div>
+              </div>
+            )}
+
             <Button onClick={book} className="mt-5" size="lg" disabled={paying}>
-              <CreditCard className="mr-1.5 h-4 w-4" /> {paying ? "Processing..." : "Confirm & pay"}
+              <CreditCard className="mr-1.5 h-4 w-4" /> {paying ? "Processing..." : `Confirm & pay ${room ? inr(roomTotal) : ""}`}
             </Button>
           </CardContent>
         </Card>
@@ -139,9 +174,23 @@ function BookingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Day pass</CardTitle>
-            <CardDescription>Drop in at any branch for ₹350 + GST.</CardDescription>
+            <CardDescription>Drop in at any branch for {inr(dayPassBase)} + GST.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            <CouponInput
+              serviceScope="day_pass"
+              branchId={branchId}
+              subtotal={dayPassBase}
+              onApplied={setDayPassCoupon}
+            />
+            <div className="space-y-1 rounded-lg border bg-secondary/40 p-3 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Day pass</span><span>{inr(dayPassBase)}</span></div>
+              {dayPassDiscount > 0 && (
+                <div className="flex justify-between text-green-600 dark:text-green-400"><span>Discount ({dayPassCoupon?.code})</span><span>−{inr(dayPassDiscount)}</span></div>
+              )}
+              <div className="flex justify-between"><span className="text-muted-foreground">GST (18%)</span><span>{inr(dayPassGst)}</span></div>
+              <div className="flex justify-between border-t pt-1 font-semibold"><span>Total</span><span>{inr(dayPassTotal)}</span></div>
+            </div>
             <Button onClick={async () => {
               if (!branchId) return;
               setPaying(true);
@@ -155,25 +204,26 @@ function BookingsPage() {
                       resourceId: "day_pass",
                       startAt: new Date().toISOString(),
                       endAt: new Date(Date.now() + 86400000).toISOString(),
-                      amount: 350,
+                      amount: dayPassSubtotal,
                     },
                     { onSuccess: resolve, onError: reject },
                   );
                 });
                 const invoice = await new Promise<any>((resolve, reject) => {
                   createInvoiceMutation.mutate(
-                    { userId: me.id, bookingId: booking.id, subtotal: 350, gst: 63, total: 413 },
+                    { userId: me.id, bookingId: booking.id, couponId: dayPassCoupon?.couponId, discountAmount: dayPassDiscount, subtotal: dayPassSubtotal, gst: dayPassGst, total: dayPassTotal },
                     { onSuccess: resolve, onError: reject },
                   );
                 });
                 await payInvoice(invoice.id, { name: me.name, email: me.email, phone: me.phone });
+                setDayPassCoupon(null);
                 toast.success("Day pass purchased! Show this at reception.");
               } catch (err: any) {
                 if (err.message !== "Payment cancelled") toast.error(err.message || "Purchase failed");
               } finally {
                 setPaying(false);
               }
-            }} className="w-full" disabled={paying}>{paying ? "Processing..." : "Buy a day pass"}</Button>
+            }} className="w-full" disabled={paying}>{paying ? "Processing..." : `Buy day pass — ${inr(dayPassTotal)}`}</Button>
           </CardContent>
         </Card>
       </div>

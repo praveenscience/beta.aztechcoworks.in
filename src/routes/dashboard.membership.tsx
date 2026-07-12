@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useMe, useMyMemberships, usePlans, useBranches, useCreateMembership, useCancelMembership, useCreateInvoice } from "@/lib/queries";
 import { inr } from "@/lib/format";
 import { payInvoice } from "@/lib/razorpay";
+import { CouponInput, type ValidatedCoupon } from "@/components/coupon-input";
 
 export const Route = createFileRoute("/dashboard/membership")({
   component: MembershipPage,
@@ -30,16 +31,24 @@ function MembershipPage() {
   const [planId, setPlanId] = useState(plans[1]?.id);
   const [branchId, setBranchId] = useState(branches[0]?.id);
   const [seats, setSeats] = useState(1);
+  const [coupon, setCoupon] = useState<ValidatedCoupon | null>(null);
 
   if (!me) return null;
   const active = memberships.find((m) => m.status === "active");
 
+  const plan = plans.find((p) => p.id === planId);
+  const baseSubtotal = plan ? plan.basePrice * seats : 0;
+  const discount = coupon?.discountAmount ?? 0;
+  const subtotalAfterDiscount = Math.max(0, baseSubtotal - discount);
+  const gstRate = plan?.gstRate ?? 18;
+  const computedGst = Math.round(subtotalAfterDiscount * (gstRate / 100));
+  const computedTotal = subtotalAfterDiscount + computedGst;
+
   const subscribe = async () => {
-    const plan = plans.find((p) => p.id === planId);
     if (!plan || !branchId) return;
-    const subtotal = plan.basePrice * seats;
-    const gst = Math.round(subtotal * 0.18);
-    const total = subtotal + gst;
+    const subtotal = subtotalAfterDiscount;
+    const gst = computedGst;
+    const total = computedTotal;
 
     setPaying(true);
     try {
@@ -61,7 +70,7 @@ function MembershipPage() {
       // 2. Create invoice
       const invoice = await new Promise<any>((resolve, reject) => {
         createInvoiceMutation.mutate(
-          { userId: me.id, membershipId: membership.id, subtotal, gst, total },
+          { userId: me.id, membershipId: membership.id, couponId: coupon?.couponId, discountAmount: discount, subtotal, gst, total },
           { onSuccess: resolve, onError: reject },
         );
       });
@@ -133,8 +142,34 @@ function MembershipPage() {
               </div>
               <div><Label>Seats</Label><Input type="number" min={1} value={seats} onChange={(e) => setSeats(Number(e.target.value))} /></div>
             </div>
+
+            {/* Coupon */}
+            <div className="mt-4">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">Have a coupon?</Label>
+              <CouponInput
+                serviceScope="membership"
+                planId={planId}
+                branchId={branchId}
+                seatType={plan?.seatType}
+                subtotal={baseSubtotal}
+                onApplied={setCoupon}
+              />
+            </div>
+
+            {/* Price breakdown */}
+            {plan && (
+              <div className="mt-4 space-y-1 rounded-lg border bg-secondary/40 p-4 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal ({seats} × {inr(plan.basePrice)})</span><span>{inr(baseSubtotal)}</span></div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600 dark:text-green-400"><span>Discount ({coupon?.code})</span><span>−{inr(discount)}</span></div>
+                )}
+                <div className="flex justify-between"><span className="text-muted-foreground">GST ({gstRate}%)</span><span>{inr(computedGst)}</span></div>
+                <div className="flex justify-between border-t pt-1 font-semibold"><span>Total</span><span>{inr(computedTotal)}</span></div>
+              </div>
+            )}
+
             <Button onClick={subscribe} className="mt-5" size="lg" disabled={paying}>
-              {paying ? "Processing payment..." : "Subscribe & pay"}
+              {paying ? "Processing payment..." : `Subscribe & pay ${plan ? inr(computedTotal) : ""}`}
             </Button>
           </CardContent>
         </Card>
