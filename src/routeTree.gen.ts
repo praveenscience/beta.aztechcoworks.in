@@ -20,6 +20,7 @@ import { Route as StaffMarketingRouteImport } from './routes/staff.marketing'
 import { Route as StaffFinanceRouteImport } from './routes/staff.finance'
 import { Route as StaffBranchRouteImport } from './routes/staff.branch'
 import { Route as DashboardVisitorsRouteImport } from './routes/dashboard.visitors'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardReferralsRouteImport } from './routes/dashboard.referrals'
 import { Route as DashboardMembershipRouteImport } from './routes/dashboard.membership'
 import { Route as DashboardInvoicesRouteImport } from './routes/dashboard.invoices'
@@ -96,6 +97,11 @@ const StaffBranchRoute = StaffBranchRouteImport.update({
 const DashboardVisitorsRoute = DashboardVisitorsRouteImport.update({
   id: '/visitors',
   path: '/visitors',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardReferralsRoute = DashboardReferralsRouteImport.update({
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/invoices': typeof DashboardInvoicesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/visitors': typeof DashboardVisitorsRoute
   '/staff/branch': typeof StaffBranchRoute
   '/staff/finance': typeof StaffFinanceRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/dashboard/invoices': typeof DashboardInvoicesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/visitors': typeof DashboardVisitorsRoute
   '/staff/branch': typeof StaffBranchRoute
   '/staff/finance': typeof StaffFinanceRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/dashboard/invoices': typeof DashboardInvoicesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/visitors': typeof DashboardVisitorsRoute
   '/staff/branch': typeof StaffBranchRoute
   '/staff/finance': typeof StaffFinanceRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/dashboard/invoices'
     | '/dashboard/membership'
     | '/dashboard/referrals'
+    | '/dashboard/settings'
     | '/dashboard/visitors'
     | '/staff/branch'
     | '/staff/finance'
@@ -375,6 +385,7 @@ export interface FileRouteTypes {
     | '/dashboard/invoices'
     | '/dashboard/membership'
     | '/dashboard/referrals'
+    | '/dashboard/settings'
     | '/dashboard/visitors'
     | '/staff/branch'
     | '/staff/finance'
@@ -411,6 +422,7 @@ export interface FileRouteTypes {
     | '/dashboard/invoices'
     | '/dashboard/membership'
     | '/dashboard/referrals'
+    | '/dashboard/settings'
     | '/dashboard/visitors'
     | '/staff/branch'
     | '/staff/finance'
@@ -512,6 +524,13 @@ declare module '@tanstack/react-router' {
       path: '/visitors'
       fullPath: '/dashboard/visitors'
       preLoaderRoute: typeof DashboardVisitorsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/referrals': {
@@ -745,6 +764,7 @@ interface DashboardRouteChildren {
   DashboardInvoicesRoute: typeof DashboardInvoicesRoute
   DashboardMembershipRoute: typeof DashboardMembershipRoute
   DashboardReferralsRoute: typeof DashboardReferralsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardVisitorsRoute: typeof DashboardVisitorsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
@@ -755,6 +775,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardInvoicesRoute: DashboardInvoicesRoute,
   DashboardMembershipRoute: DashboardMembershipRoute,
   DashboardReferralsRoute: DashboardReferralsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardVisitorsRoute: DashboardVisitorsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
