@@ -167,6 +167,7 @@ const deleteRoutes: [RegExp, RouteHandler][] = [
   [/^\/api\/dashboard\/plans\/([^/]+)$/, () => ({ ok: true })],
   [/^\/api\/dashboard\/coupons\/([^/]+)$/, () => ({ ok: true })],
   [/^\/api\/dashboard\/deals\/([^/]+)$/, () => ({ ok: true })],
+  [/^\/api\/dashboard\/users\/([^/]+)$/, () => ({ ok: true })],
 ];
 
 function matchRoute(path: string, routes: [RegExp, RouteHandler][], body?: unknown): unknown {

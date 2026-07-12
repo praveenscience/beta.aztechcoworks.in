@@ -436,6 +436,27 @@ $router->patch('/api/dashboard/users/{id}', function (array $params) use ($db, $
     return null;
 });
 
+$router->delete('/api/dashboard/users/{id}', function (array $params) use ($db, $router) {
+    $user = requireAuth($db, $router);
+    if (!$user) return null;
+    if (!requireRole($router, $user, ['super_admin'])) return null;
+
+    if ($params['id'] === $user['id']) {
+        return $router->json(['error' => 'Cannot delete your own account'], 400);
+    }
+
+    $target = $db->find('users', $params['id']);
+    if (!$target) {
+        return $router->json(['error' => 'User not found'], 404);
+    }
+
+    $db->delete('users', $params['id']);
+    $db->audit($user['id'], 'delete', 'user', $params['id'], "Deleted user {$target['name']}");
+
+    $router->json(['ok' => true]);
+    return null;
+});
+
 // ─── All branches (admin) ───────────────────────
 
 $router->get('/api/dashboard/all-branches', function () use ($db, $router) {

@@ -491,8 +491,16 @@ export function useCreateUser() {
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...patch }: { id: string; role?: string; branchId?: string; name?: string; phone?: string }) =>
+    mutationFn: ({ id, ...patch }: { id: string; role?: string; branchId?: string; name?: string; phone?: string; email?: string; company?: string }) =>
       api.patch<SafeUser>(`/api/dashboard/users/${id}`, patch),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "users"] }),
+  });
+}
+
+export function useDeleteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/dashboard/users/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "users"] }),
   });
 }
