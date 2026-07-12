@@ -70,6 +70,11 @@ const getRoutes: [RegExp, RouteHandler][] = [
       { name: "Indigo Code", logo: "" }, { name: "BrewLab", logo: "" },
     ],
   })],
+  [/^\/api\/dashboard\/analytics\/user-activity$/, () => ({
+    period: "30d", totalActions: 0, activeUsers: 0,
+    userActivity: [], dailyChart: [], hourlyChart: Array.from({ length: 24 }, (_, i) => ({ hour: `${String(i).padStart(2, "0")}:00`, actions: 0 })),
+    actionBreakdown: {}, recentActivity: [],
+  })],
   [/^\/api\/payments\/key$/, () => ({ key: "" })],
   [/^\/api\/payments\/history$/, () => []],
 ];

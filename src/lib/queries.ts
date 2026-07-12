@@ -505,6 +505,36 @@ export function useDeleteUser() {
   });
 }
 
+// ─── Analytics & Data ───────────────────────────
+
+export interface UserActivityData {
+  period: string;
+  totalActions: number;
+  activeUsers: number;
+  userActivity: { userId: string; name: string; role: string; email: string; totalActions: number; lastActive: string; actions: Record<string, number> }[];
+  dailyChart: { date: string; actions: number }[];
+  hourlyChart: { hour: string; actions: number }[];
+  actionBreakdown: Record<string, number>;
+  recentActivity: { id: number; userId: string; userName: string; action: string; entityType: string; entityId: string; detail: string; createdAt: string }[];
+}
+
+export function useUserActivity() {
+  return useQuery<UserActivityData>({
+    queryKey: ["dashboard", "analytics", "user-activity"],
+    queryFn: () => api.get("/api/dashboard/analytics/user-activity"),
+    staleTime: 60_000,
+  });
+}
+
+export function useImportData() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: unknown) =>
+      api.post<{ ok: boolean; imported: Record<string, number> }>("/api/dashboard/import", data),
+    onSuccess: () => qc.invalidateQueries(),
+  });
+}
+
 export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({

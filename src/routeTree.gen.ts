@@ -31,6 +31,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSiteRouteImport } from './routes/admin.site'
 import { Route as AdminPricingRouteImport } from './routes/admin.pricing'
 import { Route as AdminFormsRouteImport } from './routes/admin.forms'
+import { Route as AdminDataRouteImport } from './routes/admin.data'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminBranchesRouteImport } from './routes/admin.branches'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
@@ -156,6 +157,11 @@ const AdminFormsRoute = AdminFormsRouteImport.update({
   path: '/forms',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDataRoute = AdminDataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCouponsRoute = AdminCouponsRouteImport.update({
   id: '/coupons',
   path: '/coupons',
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/branches': typeof AdminBranchesRoute
   '/admin/coupons': typeof AdminCouponsRoute
+  '/admin/data': typeof AdminDataRoute
   '/admin/forms': typeof AdminFormsRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/site': typeof AdminSiteRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/branches': typeof AdminBranchesRoute
   '/admin/coupons': typeof AdminCouponsRoute
+  '/admin/data': typeof AdminDataRoute
   '/admin/forms': typeof AdminFormsRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/site': typeof AdminSiteRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/branches': typeof AdminBranchesRoute
   '/admin/coupons': typeof AdminCouponsRoute
+  '/admin/data': typeof AdminDataRoute
   '/admin/forms': typeof AdminFormsRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/site': typeof AdminSiteRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/branches'
     | '/admin/coupons'
+    | '/admin/data'
     | '/admin/forms'
     | '/admin/pricing'
     | '/admin/site'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/branches'
     | '/admin/coupons'
+    | '/admin/data'
     | '/admin/forms'
     | '/admin/pricing'
     | '/admin/site'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/branches'
     | '/admin/coupons'
+    | '/admin/data'
     | '/admin/forms'
     | '/admin/pricing'
     | '/admin/site'
@@ -627,6 +639,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFormsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/data': {
+      id: '/admin/data'
+      path: '/data'
+      fullPath: '/admin/data'
+      preLoaderRoute: typeof AdminDataRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/coupons': {
       id: '/admin/coupons'
       path: '/coupons'
@@ -780,6 +799,7 @@ interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminBranchesRoute: typeof AdminBranchesRoute
   AdminCouponsRoute: typeof AdminCouponsRoute
+  AdminDataRoute: typeof AdminDataRoute
   AdminFormsRoute: typeof AdminFormsRoute
   AdminPricingRoute: typeof AdminPricingRoute
   AdminSiteRoute: typeof AdminSiteRoute
@@ -791,6 +811,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminBranchesRoute: AdminBranchesRoute,
   AdminCouponsRoute: AdminCouponsRoute,
+  AdminDataRoute: AdminDataRoute,
   AdminFormsRoute: AdminFormsRoute,
   AdminPricingRoute: AdminPricingRoute,
   AdminSiteRoute: AdminSiteRoute,

@@ -10,3 +10,4 @@ require __DIR__ . '/routes/dashboard.php';
 require __DIR__ . '/routes/coupons.php';
 require __DIR__ . '/routes/payment.php';
 require __DIR__ . '/routes/site-settings.php';
+require __DIR__ . '/routes/data.php';
