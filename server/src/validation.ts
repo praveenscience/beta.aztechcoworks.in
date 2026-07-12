@@ -154,9 +154,11 @@ export const userCreateSchema = z.object({
 
 export const userPatchSchema = z.object({
   name: z.string().min(2).max(100).optional(),
+  email: email.optional(),
   role: z.enum(["visitor", "member", "reception", "sales_exec", "sales_manager", "branch_manager", "finance", "marketing", "super_admin"]).optional(),
   branchId: z.string().max(50).nullable().optional(),
   phone: phone.optional(),
+  company: z.string().max(200).nullable().optional(),
 }).strict();
 
 // ─── Validation middleware ──────────────────────

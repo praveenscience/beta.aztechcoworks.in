@@ -10,6 +10,7 @@ import type {
   User, Branch, SeatInventory, MeetingRoom, Plan,
   Lead, LeadActivity, Task, SiteVisit, Membership,
   Booking, Invoice, Visitor, BlogPost, Testimonial,
+  Coupon, CouponUsage, UserDeal,
 } from "./types.js";
 
 // ─── Setup ──────────────────────────────────────
@@ -226,6 +227,58 @@ sqlite.exec(`
     expiresAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS coupons (
+    id TEXT PRIMARY KEY,
+    code TEXT UNIQUE NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    discountType TEXT NOT NULL DEFAULT 'percentage',
+    discountValue INTEGER NOT NULL DEFAULT 0,
+    maxDiscountAmount INTEGER,
+    serviceScope TEXT NOT NULL DEFAULT 'all',
+    allowedPlanIds TEXT NOT NULL DEFAULT '[]',
+    allowedBranchIds TEXT NOT NULL DEFAULT '[]',
+    allowedSeatTypes TEXT NOT NULL DEFAULT '[]',
+    minOrderValue INTEGER NOT NULL DEFAULT 0,
+    minDurationMonths INTEGER NOT NULL DEFAULT 0,
+    firstPurchaseOnly INTEGER NOT NULL DEFAULT 0,
+    maxUsesTotal INTEGER NOT NULL DEFAULT 0,
+    maxUsesPerUser INTEGER NOT NULL DEFAULT 0,
+    currentUsesTotal INTEGER NOT NULL DEFAULT 0,
+    stackable INTEGER NOT NULL DEFAULT 0,
+    isReferralCoupon INTEGER NOT NULL DEFAULT 0,
+    validFrom TEXT NOT NULL,
+    validUntil TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    createdBy TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS coupon_usages (
+    id TEXT PRIMARY KEY,
+    couponId TEXT NOT NULL REFERENCES coupons(id),
+    userId TEXT NOT NULL REFERENCES users(id),
+    invoiceId TEXT NOT NULL,
+    discountAmount INTEGER NOT NULL,
+    appliedAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS user_deals (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL REFERENCES users(id),
+    couponId TEXT NOT NULL REFERENCES coupons(id),
+    status TEXT NOT NULL DEFAULT 'available',
+    assignedBy TEXT NOT NULL,
+    assignedAt TEXT NOT NULL,
+    expiresAt TEXT,
+    usedAt TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL DEFAULT '[]',
+    updatedAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
     orderId TEXT UNIQUE NOT NULL,
@@ -256,16 +309,41 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_payments_orderId ON payments(orderId);
   CREATE INDEX IF NOT EXISTS idx_payments_invoiceId ON payments(invoiceId);
   CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_userId ON password_reset_tokens(userId);
+  CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);
+  CREATE INDEX IF NOT EXISTS idx_coupon_usages_couponId ON coupon_usages(couponId);
+  CREATE INDEX IF NOT EXISTS idx_coupon_usages_userId ON coupon_usages(userId);
+  CREATE INDEX IF NOT EXISTS idx_user_deals_userId ON user_deals(userId);
+  CREATE INDEX IF NOT EXISTS idx_user_deals_couponId ON user_deals(couponId);
 `);
+
+// ─── Migrations ─────────────────────────────────
+
+function migrate() {
+  const cols = sqlite.prepare("PRAGMA table_info(branches)").all() as any[];
+  const colNames = cols.map((c: any) => c.name);
+  if (!colNames.includes("photos")) {
+    sqlite.exec("ALTER TABLE branches ADD COLUMN photos TEXT NOT NULL DEFAULT '[]'");
+  }
+
+  const invCols = sqlite.prepare("PRAGMA table_info(invoices)").all() as any[];
+  const invColNames = invCols.map((c: any) => c.name);
+  if (!invColNames.includes("couponId")) {
+    sqlite.exec("ALTER TABLE invoices ADD COLUMN couponId TEXT");
+    sqlite.exec("ALTER TABLE invoices ADD COLUMN discountAmount INTEGER NOT NULL DEFAULT 0");
+  }
+}
+
+migrate();
 
 // ─── Helpers ────────────────────────────────────
 
 // JSON fields that need parse/stringify
 const JSON_FIELDS: Record<string, string[]> = {
-  branches: ["amenities"],
+  branches: ["amenities", "photos"],
   plans: ["features"],
   blog: ["tags"],
   leads: ["customFields"],
+  coupons: ["allowedPlanIds", "allowedBranchIds", "allowedSeatTypes"],
 };
 
 function parseRow<T>(table: string, row: any): T {
@@ -281,6 +359,9 @@ function parseRow<T>(table: string, row: any): T {
   // SQLite stores booleans as 0/1
   if ("isActive" in row) row.isActive = !!row.isActive;
   if ("done" in row) row.done = !!row.done;
+  if ("firstPurchaseOnly" in row) row.firstPurchaseOnly = !!row.firstPurchaseOnly;
+  if ("stackable" in row) row.stackable = !!row.stackable;
+  if ("isReferralCoupon" in row) row.isReferralCoupon = !!row.isReferralCoupon;
   return row as T;
 }
 
@@ -300,6 +381,9 @@ function prepareForInsert(table: string, obj: Record<string, any>): Record<strin
   }
   if ("isActive" in copy) copy.isActive = copy.isActive ? 1 : 0;
   if ("done" in copy) copy.done = copy.done ? 1 : 0;
+  if ("firstPurchaseOnly" in copy) copy.firstPurchaseOnly = copy.firstPurchaseOnly ? 1 : 0;
+  if ("stackable" in copy) copy.stackable = copy.stackable ? 1 : 0;
+  if ("isReferralCoupon" in copy) copy.isReferralCoupon = copy.isReferralCoupon ? 1 : 0;
   return copy;
 }
 
@@ -345,12 +429,12 @@ if (needsSeed) {
   ];
 
   const seedBranches: Branch[] = [
-    { id: "br_bk", slug: "brookfields", name: "Aztech Brookfields", address: "Dr Krishnasamy Mudaliyar Rd, Above Kailash Parbat, Brookefields, Sukrawar Pettai, R.S. Puram, Coimbatore, Tamil Nadu 641001", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 60, isActive: true, photo: "photo-1497366216548-37526070297c", description: "The Aztech flagship at Brookfields Mall — large team operations, fully managed enterprise setups (20 to 150+ seaters), and premium corporate workstations." },
-    { id: "br_rs", slug: "rs-puram", name: "Aztech RS Puram", address: "2nd Floor, Indsil House, E TV Swamy Road, RS Puram, Coimbatore, Tamil Nadu 641002", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 65, isActive: true, photo: "photo-1497366754035-f200968a6e72", description: "Premium enterprise wings, custom executive suites, private cabins, and day-pass coworking at the heart of RS Puram." },
-    { id: "br_re", slug: "rs-puram-east", name: "Aztech RS Puram East", address: "2nd Floor, 161 L, E Ponnurangam Road (East), RS Puram, Coimbatore, Tamil Nadu 641002", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 80, isActive: true, photo: "photo-1556761175-5973dc0f32e7", description: "Ideal for freelancers, startups, back-office operations, training centers, and virtual office rentals." },
-    { id: "br_rn", slug: "ram-nagar", name: "Aztech Ram Nagar", address: "Near Vivekananda Road, Ram Nagar, Coimbatore", city: "Coimbatore", phone: "+91 83106 96307", hours: "24/7 · Digital access codes", amenities, totalSeats: 200, availableSeats: 75, isActive: true, photo: "photo-1604328698692-f76ea9498e76", description: "24/7 access hub with digital door codes — work on your schedule, any time of day or night." },
-    { id: "br_at", slug: "att-colony", name: "Aztech ATT Colony", address: "Aztech Elysium Towers, ATT Colony, Coimbatore", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 70, isActive: true, photo: "photo-1568992687947-868a62a9f521", description: "Modern tech-startup floors and corporate satellite offices in the vibrant ATT Colony neighborhood." },
-    { id: "br_sb", slug: "saibaba-colony", name: "Aztech Saibaba Colony", address: "Aztech Sanhasa Square, Saibaba Colony, Coimbatore", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 65, isActive: true, photo: "photo-1555396273-367ea4eb4db5", description: "High-density scale-up teams and private corporate cabins at Sanhasa Square." },
+    { id: "br_bk", slug: "brookfields", name: "Aztech Brookfields", address: "Dr Krishnasamy Mudaliyar Rd, Above Kailash Parbat, Brookefields, Sukrawar Pettai, R.S. Puram, Coimbatore, Tamil Nadu 641001", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 60, isActive: true, photo: "photo-1497366216548-37526070297c", description: "The Aztech flagship at Brookfields Mall — large team operations, fully managed enterprise setups (20 to 150+ seaters), and premium corporate workstations.", photos: [] },
+    { id: "br_rs", slug: "rs-puram", name: "Aztech RS Puram", address: "2nd Floor, Indsil House, E TV Swamy Road, RS Puram, Coimbatore, Tamil Nadu 641002", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 65, isActive: true, photo: "photo-1497366754035-f200968a6e72", description: "Premium enterprise wings, custom executive suites, private cabins, and day-pass coworking at the heart of RS Puram.", photos: [] },
+    { id: "br_re", slug: "rs-puram-east", name: "Aztech RS Puram East", address: "2nd Floor, 161 L, E Ponnurangam Road (East), RS Puram, Coimbatore, Tamil Nadu 641002", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 80, isActive: true, photo: "photo-1556761175-5973dc0f32e7", description: "Ideal for freelancers, startups, back-office operations, training centers, and virtual office rentals.", photos: [] },
+    { id: "br_rn", slug: "ram-nagar", name: "Aztech Ram Nagar", address: "Near Vivekananda Road, Ram Nagar, Coimbatore", city: "Coimbatore", phone: "+91 83106 96307", hours: "24/7 · Digital access codes", amenities, totalSeats: 200, availableSeats: 75, isActive: true, photo: "photo-1604328698692-f76ea9498e76", description: "24/7 access hub with digital door codes — work on your schedule, any time of day or night.", photos: [] },
+    { id: "br_at", slug: "att-colony", name: "Aztech ATT Colony", address: "Aztech Elysium Towers, ATT Colony, Coimbatore", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 70, isActive: true, photo: "photo-1568992687947-868a62a9f521", description: "Modern tech-startup floors and corporate satellite offices in the vibrant ATT Colony neighborhood.", photos: [] },
+    { id: "br_sb", slug: "saibaba-colony", name: "Aztech Saibaba Colony", address: "Aztech Sanhasa Square, Saibaba Colony, Coimbatore", city: "Coimbatore", phone: "+91 83106 96307", hours: "Mon–Sat · 8:00 AM – 10:00 PM", amenities, totalSeats: 200, availableSeats: 65, isActive: true, photo: "photo-1555396273-367ea4eb4db5", description: "High-density scale-up teams and private corporate cabins at Sanhasa Square.", photos: [] },
   ];
 
   const seedTransaction = sqlite.transaction(() => {
@@ -426,6 +510,34 @@ if (needsSeed) {
       { id: "t3", name: "Vignesh Raghavan", company: "Northwind Labs", role: "CTO", quote: "Best workspace in Coimbatore, hands down.", avatar: "photo-1472099645785-5658abf4ff4e" },
     ];
     for (const t of seedTestimonials) insertRow("testimonials", "testimonials", t);
+
+    // Seed coupons
+    const seedCoupons = [
+      { id: "cp_launch", code: "LAUNCH26", description: "Launch offer — 15% off everything", discountType: "percentage", discountValue: 15, maxDiscountAmount: 2000, serviceScope: "all", allowedPlanIds: [], allowedBranchIds: [], allowedSeatTypes: [], minOrderValue: 0, minDurationMonths: 0, firstPurchaseOnly: false, maxUsesTotal: 100, maxUsesPerUser: 1, currentUsesTotal: 0, stackable: false, isReferralCoupon: false, validFrom: now(), validUntil: "2026-12-31", status: "active", createdBy: "u_super", createdAt: now() },
+      { id: "cp_hotdesk", code: "HOTDESK500", description: "₹500 off Hot Desk plan", discountType: "flat", discountValue: 500, serviceScope: "membership", allowedPlanIds: ["pl_hot"], allowedBranchIds: [], allowedSeatTypes: [], minOrderValue: 0, minDurationMonths: 0, firstPurchaseOnly: false, maxUsesTotal: 0, maxUsesPerUser: 1, currentUsesTotal: 0, stackable: false, isReferralCoupon: false, validFrom: now(), validUntil: "2027-12-31", status: "active", createdBy: "u_super", createdAt: now() },
+      { id: "cp_trial", code: "FREETRIAL7", description: "7 free days on first membership", discountType: "free_days", discountValue: 7, serviceScope: "membership", allowedPlanIds: [], allowedBranchIds: [], allowedSeatTypes: [], minOrderValue: 0, minDurationMonths: 0, firstPurchaseOnly: true, maxUsesTotal: 200, maxUsesPerUser: 1, currentUsesTotal: 0, stackable: false, isReferralCoupon: false, validFrom: now(), validUntil: "2027-06-30", status: "active", createdBy: "u_super", createdAt: now() },
+    ];
+    for (const c of seedCoupons) insertRow("coupons", "coupons", c);
+
+    // Seed user deals (assign deals to demo member)
+    insertRow("user_deals", "user_deals", { id: "ud_1", userId: "u_member", couponId: "cp_launch", status: "available", assignedBy: "u_super", assignedAt: now(), expiresAt: "2026-12-31" });
+    insertRow("user_deals", "user_deals", { id: "ud_2", userId: "u_member", couponId: "cp_hotdesk", status: "available", assignedBy: "u_super", assignedAt: now(), expiresAt: "2027-12-31" });
+
+    // Seed site settings
+    sqlite.prepare("INSERT OR IGNORE INTO site_settings (key, value, updatedAt) VALUES (?, ?, ?)").run(
+      "hero_images",
+      JSON.stringify(["photo-1497366216548-37526070297c", "photo-1556761175-5973dc0f32e7", "photo-1604328698692-f76ea9498e76"]),
+      now()
+    );
+    sqlite.prepare("INSERT OR IGNORE INTO site_settings (key, value, updatedAt) VALUES (?, ?, ?)").run(
+      "client_logos",
+      JSON.stringify([
+        { name: "Loop Analytics", logo: "" }, { name: "Cibyl Studios", logo: "" },
+        { name: "Northwind Labs", logo: "" }, { name: "OrangeFin", logo: "" },
+        { name: "Indigo Code", logo: "" }, { name: "BrewLab", logo: "" },
+      ]),
+      now()
+    );
   });
 
   seedTransaction();
@@ -473,6 +585,7 @@ export const db = {
     updatePassword: (id: string, hash: string) => {
       sqlite.prepare("UPDATE users SET passwordHash = ? WHERE id = ?").run(hash, id);
     },
+    delete: (id: string) => { sqlite.prepare("DELETE FROM users WHERE id = ?").run(id); },
   },
 
   leads: {
@@ -576,6 +689,58 @@ export const db = {
     },
   },
 
+  coupons: {
+    all: () => getAllRows<Coupon>("coupons", "coupons"),
+    find: (id: string) => getRow<Coupon>("coupons", "coupons", id),
+    findByCode: (code: string) => {
+      const row = sqlite.prepare("SELECT * FROM coupons WHERE code = ?").get(code);
+      return row ? parseRow<Coupon>("coupons", row) : undefined;
+    },
+    insert: (c: Coupon) => { insertRow("coupons", "coupons", c); return c; },
+    update: (id: string, patch: Partial<Coupon>) => updateRow("coupons", "coupons", id, patch) as Coupon | undefined,
+    incrementUsage: (id: string) => {
+      sqlite.prepare("UPDATE coupons SET currentUsesTotal = currentUsesTotal + 1 WHERE id = ?").run(id);
+    },
+  },
+
+  couponUsages: {
+    all: () => getAllRows<CouponUsage>("coupon_usages", "coupon_usages"),
+    byCoupon: (couponId: string) => parseRows<CouponUsage>("coupon_usages", sqlite.prepare("SELECT * FROM coupon_usages WHERE couponId = ?").all(couponId)),
+    countByUser: (couponId: string, userId: string) => {
+      return (sqlite.prepare("SELECT COUNT(*) as c FROM coupon_usages WHERE couponId = ? AND userId = ?").get(couponId, userId) as any).c as number;
+    },
+    insert: (u: CouponUsage) => { insertRow("coupon_usages", "coupon_usages", u); return u; },
+  },
+
+  userDeals: {
+    all: () => getAllRows<UserDeal>("user_deals", "user_deals"),
+    byUser: (userId: string) => parseRows<UserDeal>("user_deals", sqlite.prepare("SELECT * FROM user_deals WHERE userId = ?").all(userId)),
+    find: (id: string) => getRow<UserDeal>("user_deals", "user_deals", id),
+    insert: (d: UserDeal) => { insertRow("user_deals", "user_deals", d); return d; },
+    update: (id: string, patch: Partial<UserDeal>) => updateRow("user_deals", "user_deals", id, patch) as UserDeal | undefined,
+    hasAvailable: (userId: string, couponId: string) => {
+      const row = sqlite.prepare("SELECT id FROM user_deals WHERE userId = ? AND couponId = ? AND status = 'available'").get(userId, couponId);
+      return !!row;
+    },
+    markUsed: (userId: string, couponId: string) => {
+      sqlite.prepare("UPDATE user_deals SET status = 'used', usedAt = ? WHERE userId = ? AND couponId = ? AND status = 'available'").run(new Date().toISOString(), userId, couponId);
+    },
+  },
+
+  siteSettings: {
+    get: (key: string) => {
+      const row = sqlite.prepare("SELECT value FROM site_settings WHERE key = ?").get(key) as { value: string } | undefined;
+      if (!row) return undefined;
+      try { return JSON.parse(row.value); } catch { return row.value; }
+    },
+    set: (key: string, value: unknown) => {
+      const json = JSON.stringify(value);
+      const now = new Date().toISOString();
+      sqlite.prepare("INSERT INTO site_settings (key, value, updatedAt) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updatedAt=excluded.updatedAt").run(key, json, now);
+    },
+    all: () => sqlite.prepare("SELECT * FROM site_settings").all() as { key: string; value: string; updatedAt: string }[],
+  },
+
   payments: {
     all: () => getAllRows<any>("payments", "payments"),
     find: (id: string) => getRow<any>("payments", "payments", id),
@@ -589,5 +754,19 @@ export const db = {
     },
     insert: (p: any) => { insertRow("payments", "payments", p); return p; },
     update: (id: string, patch: Record<string, any>) => updateRow("payments", "payments", id, patch),
+  },
+
+  // Raw DB access for data import/export
+  raw: {
+    query: (sql: string, ...params: any[]) => params.length ? sqlite.prepare(sql).all(...params) : sqlite.prepare(sql).all(),
+    run: (sql: string, ...params: any[]) => sqlite.prepare(sql).run(...params),
+    exec: (sql: string) => sqlite.exec(sql),
+    transaction: <T>(fn: () => T) => sqlite.transaction(fn)(),
+    insertOrReplace: (table: string, obj: Record<string, any>) => {
+      const data = prepareForInsert(table, obj);
+      const keys = Object.keys(data);
+      const placeholders = keys.map(() => "?").join(", ");
+      sqlite.prepare(`INSERT OR REPLACE INTO ${table} (${keys.join(", ")}) VALUES (${placeholders})`).run(...keys.map((k) => data[k] ?? null));
+    },
   },
 };

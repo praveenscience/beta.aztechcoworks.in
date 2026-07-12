@@ -255,6 +255,20 @@ router.patch("/users/:id", requireRole("super_admin"), auditLog("update", "user"
   res.json(safe);
 });
 
+router.delete("/users/:id", requireRole("super_admin"), (req, res) => {
+  const user = (req as any)._user;
+  if (req.params.id === user.id) {
+    res.status(400).json({ error: "Cannot delete your own account" });
+    return;
+  }
+  const target = db.users.find(req.params.id);
+  if (!target) { res.status(404).json({ error: "User not found" }); return; }
+
+  db.users.delete(req.params.id);
+  db.auditLogs.insert({ userId: user.id, action: "delete", entityType: "user", entityId: req.params.id, detail: `Deleted user ${target.name}` });
+  res.json({ ok: true });
+});
+
 // ─── All branches (admin — includes inactive) ───
 
 router.get("/all-branches", (req, res) => {

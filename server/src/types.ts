@@ -44,6 +44,7 @@ export interface Branch {
   isActive: boolean;
   photo: string;
   description: string;
+  photos: string[];
 }
 
 export interface SeatInventory {
@@ -148,6 +149,8 @@ export interface Invoice {
   userId: string;
   bookingId?: string;
   membershipId?: string;
+  couponId?: string;
+  discountAmount: number;
   subtotal: number;
   gst: number;
   total: number;
@@ -187,4 +190,56 @@ export interface Testimonial {
   role: string;
   quote: string;
   avatar: string;
+}
+
+export type CouponDiscountType = "percentage" | "flat" | "free_days";
+export type CouponServiceScope = "all" | "membership" | "meeting_room" | "day_pass";
+export type CouponStatus = "active" | "expired" | "inactive";
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  maxDiscountAmount?: number;
+  serviceScope: CouponServiceScope;
+  allowedPlanIds: string[];
+  allowedBranchIds: string[];
+  allowedSeatTypes: string[];
+  minOrderValue: number;
+  minDurationMonths: number;
+  firstPurchaseOnly: boolean;
+  maxUsesTotal: number;
+  maxUsesPerUser: number;
+  currentUsesTotal: number;
+  stackable: boolean;
+  isReferralCoupon: boolean;
+  validFrom: string;
+  validUntil: string;
+  status: CouponStatus;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface CouponUsage {
+  id: string;
+  couponId: string;
+  userId: string;
+  invoiceId: string;
+  discountAmount: number;
+  appliedAt: string;
+}
+
+export type UserDealStatus = "available" | "used" | "expired";
+
+export interface UserDeal {
+  id: string;
+  userId: string;
+  couponId: string;
+  status: UserDealStatus;
+  assignedBy: string;
+  assignedAt: string;
+  expiresAt?: string;
+  usedAt?: string;
 }

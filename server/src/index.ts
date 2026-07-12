@@ -3,10 +3,17 @@ import cors from "cors";
 import session from "express-session";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import authRoutes from "./routes/auth.routes.js";
 import publicRoutes from "./routes/public.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import couponRoutes from "./routes/coupons.routes.js";
+import siteSettingsRoutes from "./routes/site-settings.routes.js";
+import dataRoutes from "./routes/data.routes.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -22,7 +29,7 @@ app.use(cors({
 }));
 
 // ─── Body parsing ───────────────────────────────
-app.use(express.json({ limit: "100kb" }));
+app.use(express.json({ limit: "2mb" }));
 
 // ─── Session ────────────────────────────────────
 const sessionSecret = process.env.SESSION_SECRET;
@@ -66,9 +73,15 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
 
+// Static file serving for uploaded photos
+app.use("/photos", express.static(resolve(__dirname, "../photos")));
+
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api", publicRoutes(publicFormLimiter));
+app.use("/api", siteSettingsRoutes);
+app.use("/api", couponRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/dashboard", dataRoutes);
 app.use("/api/payments", paymentRoutes);
 
 // ─── Start ──────────────────────────────────────
