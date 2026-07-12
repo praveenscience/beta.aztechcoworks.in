@@ -42,6 +42,7 @@ export function inr(n: number) {
 }
 
 export function unsplash(id: string, w = 1200, h = 800) {
+  if (id.startsWith("http") || id.startsWith("/")) return id;
   return `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=80`;
 }
 
