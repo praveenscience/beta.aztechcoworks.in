@@ -203,14 +203,23 @@ export const seedMemberships: Membership[] = [
 ];
 
 export const seedInvoices: Invoice[] = [
-  { id: "inv1", number: "AZTECH-2026-0001", userId: "u_member", membershipId: "mb1", subtotal: 8500, gst: 1530, total: 10030, status: "paid", issuedAt: "2026-06-01" },
-  { id: "inv2", number: "AZTECH-2026-0002", userId: "u_member", membershipId: "mb1", subtotal: 8500, gst: 1530, total: 10030, status: "paid", issuedAt: "2026-05-01" },
+  { id: "inv1", number: "AZTECH-2026-0001", userId: "u_member", membershipId: "mb1", discountAmount: 0, subtotal: 8500, gst: 1530, total: 10030, status: "paid", issuedAt: "2026-06-01" },
+  { id: "inv2", number: "AZTECH-2026-0002", userId: "u_member", membershipId: "mb1", discountAmount: 0, subtotal: 8500, gst: 1530, total: 10030, status: "paid", issuedAt: "2026-05-01" },
 ];
 
 // ─── Coupons ─────────────────────────────────────
 
 export const seedCoupons: Coupon[] = [
-  { code: "LAUNCH26", discountPct: 15, validUntil: "2026-12-31" },
+  {
+    id: "cp_launch", code: "LAUNCH26", description: "Launch offer — 15% off everything",
+    discountType: "percentage", discountValue: 15, maxDiscountAmount: 2000,
+    serviceScope: "all", allowedPlanIds: [], allowedBranchIds: [], allowedSeatTypes: [],
+    minOrderValue: 0, minDurationMonths: 0, firstPurchaseOnly: false,
+    maxUsesTotal: 100, maxUsesPerUser: 1, currentUsesTotal: 0,
+    stackable: false, isReferralCoupon: false,
+    validFrom: "2026-01-01", validUntil: "2026-12-31", status: "active",
+    createdBy: "u_super", createdAt: "2026-01-01T00:00:00Z",
+  },
 ];
 
 // ─── Forms ───────────────────────────────────────

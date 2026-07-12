@@ -84,10 +84,50 @@ export interface Plan {
   features: string[];
 }
 
+export type CouponDiscountType = "percentage" | "flat" | "free_days";
+export type CouponServiceScope = "all" | "membership" | "meeting_room" | "day_pass";
+export type CouponStatus = "active" | "inactive" | "expired";
+
 export interface Coupon {
+  id: string;
   code: string;
-  discountPct: number;
+  description: string;
+
+  discountType: CouponDiscountType;
+  discountValue: number;
+  maxDiscountAmount?: number;
+
+  serviceScope: CouponServiceScope;
+  allowedPlanIds: string[];
+  allowedBranchIds: string[];
+  allowedSeatTypes: string[];
+
+  minOrderValue: number;
+  minDurationMonths: number;
+  firstPurchaseOnly: boolean;
+
+  maxUsesTotal: number;
+  maxUsesPerUser: number;
+  currentUsesTotal: number;
+
+  stackable: boolean;
+  isReferralCoupon: boolean;
+
+  validFrom: string;
   validUntil: string;
+  status: CouponStatus;
+
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface CouponUsage {
+  id: string;
+  couponId: string;
+  userId: string;
+  invoiceId: string;
+  discountAmount: number;
+  appliedAt: string;
 }
 
 export interface Lead {
@@ -166,6 +206,8 @@ export interface Invoice {
   userId: string;
   bookingId?: string;
   membershipId?: string;
+  couponId?: string;
+  discountAmount: number;
   subtotal: number;
   gst: number;
   total: number;

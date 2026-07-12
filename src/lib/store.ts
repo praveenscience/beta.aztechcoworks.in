@@ -225,6 +225,7 @@ export const useStore = create<Store>()(
           number: `AZTECH-2026-${String(get().invoices.length + 100).padStart(4, "0")}`,
           userId: b.userId,
           bookingId: booking.id,
+          discountAmount: 0,
           subtotal: b.amount,
           gst: Math.round(b.amount * 0.18),
           total: Math.round(b.amount * 1.18),
@@ -246,6 +247,7 @@ export const useStore = create<Store>()(
           number: `AZTECH-2026-${String(get().invoices.length + 100).padStart(4, "0")}`,
           userId: m.userId,
           membershipId: mem.id,
+          discountAmount: 0,
           subtotal,
           gst,
           total: subtotal + gst,
@@ -296,12 +298,7 @@ export const useStore = create<Store>()(
       // Admin: Plans & Coupons
       upsertPlan: (p) => set((s) => ({ plans: upsert(s.plans, p) })),
       deletePlan: (id) => set((s) => ({ plans: s.plans.filter((p) => p.id !== id) })),
-      upsertCoupon: (c) =>
-        set((s) => ({
-          coupons: s.coupons.find((x) => x.code === c.code)
-            ? s.coupons.map((x) => (x.code === c.code ? c : x))
-            : [...s.coupons, c],
-        })),
+      upsertCoupon: (c) => set((s) => ({ coupons: upsert(s.coupons, c) })),
       deleteCoupon: (code) => set((s) => ({ coupons: s.coupons.filter((c) => c.code !== code) })),
 
       // Admin: Workflows, Forms, Blog

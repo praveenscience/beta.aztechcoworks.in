@@ -25,11 +25,13 @@ function AdminPricing() {
   const { data: plans = [] } = usePlans();
   const upsertPlanMutation = useUpsertPlan();
   const deletePlanMutation = useDeletePlan();
-  // No API endpoint for coupons — keep useStore
+  // Coupons — still using local store for now (Phase 5 will move to API)
   const coupons = useStore((s) => s.coupons);
   const upsertCoupon = useStore((s) => s.upsertCoupon);
   const deleteCoupon = useStore((s) => s.deleteCoupon);
-  const [coupon, setCoupon] = useState({ code: "", discountPct: 10, validUntil: "2026-12-31" });
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(10);
+  const [couponUntil, setCouponUntil] = useState("2026-12-31");
 
   const addPlan = () => {
     const id = `pl_${Math.random().toString(36).slice(2, 8)}`;
@@ -70,7 +72,7 @@ function AdminPricing() {
           <div className="mb-4 flex flex-wrap gap-2">
             {coupons.map((c) => (
               <Badge key={c.code} variant="secondary" className="gap-2 text-xs">
-                {c.code} · {c.discountPct}% · until {c.validUntil}
+                {c.code} · {c.discountType === "percentage" ? `${c.discountValue}%` : c.discountType === "flat" ? `₹${c.discountValue}` : `${c.discountValue} days`} · until {c.validUntil.slice(0, 10)}
                 <button
                   onClick={() => { deleteCoupon(c.code); toast.success(`Removed ${c.code}`); }}
                   className="text-muted-foreground hover:text-destructive"
@@ -85,17 +87,27 @@ function AdminPricing() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              upsertCoupon(coupon);
+              upsertCoupon({
+                id: `cp_${Math.random().toString(36).slice(2, 8)}`, code: couponCode, description: "",
+                discountType: "percentage", discountValue: couponDiscount,
+                serviceScope: "all", allowedPlanIds: [], allowedBranchIds: [], allowedSeatTypes: [],
+                minOrderValue: 0, minDurationMonths: 0, firstPurchaseOnly: false,
+                maxUsesTotal: 0, maxUsesPerUser: 1, currentUsesTotal: 0,
+                stackable: false, isReferralCoupon: false,
+                validFrom: new Date().toISOString(), validUntil: couponUntil, status: "active",
+                createdBy: "u_super", createdAt: new Date().toISOString(),
+              });
               toast.success("Coupon saved");
-              setCoupon({ code: "", discountPct: 10, validUntil: "2026-12-31" });
+              setCouponCode(""); setCouponDiscount(10); setCouponUntil("2026-12-31");
             }}
             className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto]"
           >
-            <Input required placeholder="LAUNCH26" value={coupon.code} onChange={(e) => setCoupon({ ...coupon, code: e.target.value.toUpperCase() })} />
-            <Input type="number" min={1} max={100} value={coupon.discountPct} onChange={(e) => setCoupon({ ...coupon, discountPct: Number(e.target.value) })} />
-            <Input type="date" value={coupon.validUntil} onChange={(e) => setCoupon({ ...coupon, validUntil: e.target.value })} />
+            <Input required placeholder="LAUNCH26" value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} />
+            <Input type="number" min={1} max={100} value={couponDiscount} onChange={(e) => setCouponDiscount(Number(e.target.value))} />
+            <Input type="date" value={couponUntil} onChange={(e) => setCouponUntil(e.target.value)} />
             <Button type="submit">Add</Button>
           </form>
+          <p className="mt-2 text-xs text-muted-foreground">Quick add — for full coupon management (service scope, limits, etc.) use the dedicated Coupons page (coming soon).</p>
         </CardContent>
       </Card>
     </>

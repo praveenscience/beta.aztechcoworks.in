@@ -29,6 +29,8 @@ final class Db
         $this->seedIfEmpty();
     }
 
+    public function pdo(): PDO { return $this->pdo; }
+
     private function migrate(): void
     {
         // Add photos column to branches if missing
@@ -36,6 +38,14 @@ final class Db
         $colNames = array_column($cols, 'name');
         if (!in_array('photos', $colNames, true)) {
             $this->pdo->exec("ALTER TABLE branches ADD COLUMN photos TEXT NOT NULL DEFAULT '[]'");
+        }
+
+        // Add coupon/discount columns to invoices if missing
+        $invCols = $this->pdo->query("PRAGMA table_info(invoices)")->fetchAll();
+        $invColNames = array_column($invCols, 'name');
+        if (!in_array('couponId', $invColNames, true)) {
+            $this->pdo->exec("ALTER TABLE invoices ADD COLUMN couponId TEXT");
+            $this->pdo->exec("ALTER TABLE invoices ADD COLUMN discountAmount INTEGER NOT NULL DEFAULT 0");
         }
     }
 
@@ -122,6 +132,35 @@ final class Db
             CREATE TABLE IF NOT EXISTS testimonials (
                 id TEXT PRIMARY KEY, name TEXT NOT NULL, company TEXT NOT NULL,
                 role TEXT NOT NULL, quote TEXT NOT NULL, avatar TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS coupons (
+                id TEXT PRIMARY KEY, code TEXT UNIQUE NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                discountType TEXT NOT NULL DEFAULT 'percentage',
+                discountValue INTEGER NOT NULL DEFAULT 0,
+                maxDiscountAmount INTEGER,
+                serviceScope TEXT NOT NULL DEFAULT 'all',
+                allowedPlanIds TEXT NOT NULL DEFAULT '[]',
+                allowedBranchIds TEXT NOT NULL DEFAULT '[]',
+                allowedSeatTypes TEXT NOT NULL DEFAULT '[]',
+                minOrderValue INTEGER NOT NULL DEFAULT 0,
+                minDurationMonths INTEGER NOT NULL DEFAULT 0,
+                firstPurchaseOnly INTEGER NOT NULL DEFAULT 0,
+                maxUsesTotal INTEGER NOT NULL DEFAULT 0,
+                maxUsesPerUser INTEGER NOT NULL DEFAULT 0,
+                currentUsesTotal INTEGER NOT NULL DEFAULT 0,
+                stackable INTEGER NOT NULL DEFAULT 0,
+                isReferralCoupon INTEGER NOT NULL DEFAULT 0,
+                validFrom TEXT NOT NULL,
+                validUntil TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active',
+                createdBy TEXT NOT NULL,
+                createdAt TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS coupon_usages (
+                id TEXT PRIMARY KEY, couponId TEXT NOT NULL REFERENCES coupons(id),
+                userId TEXT NOT NULL REFERENCES users(id), invoiceId TEXT NOT NULL,
+                discountAmount INTEGER NOT NULL, appliedAt TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS password_reset_tokens (
                 token TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id),
@@ -230,6 +269,12 @@ final class Db
         $tStmt->execute(['t1','Karthik Subramaniam','Loop Analytics','Founder & CEO','Aztech let us scale from 3 to 22 people without ever moving offices.','photo-1500648767791-00dcc994a43e']);
         $tStmt->execute(['t2','Anjali Menon','Cibyl Studios','Design Lead','The community is real. We\'ve hired two engineers from coffee chats in the lounge.','photo-1438761681033-6461ffad8d80']);
         $tStmt->execute(['t3','Vignesh Raghavan','Northwind Labs','CTO','Best workspace in Coimbatore, hands down.','photo-1472099645785-5658abf4ff4e']);
+
+        // Seed coupons
+        $cpStmt = $this->pdo->prepare("INSERT INTO coupons (id,code,description,discountType,discountValue,maxDiscountAmount,serviceScope,allowedPlanIds,allowedBranchIds,allowedSeatTypes,minOrderValue,minDurationMonths,firstPurchaseOnly,maxUsesTotal,maxUsesPerUser,currentUsesTotal,stackable,isReferralCoupon,validFrom,validUntil,status,createdBy,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?,?)");
+        $cpStmt->execute(['cp_launch','LAUNCH26','Launch offer — 15% off everything','percentage',15,2000,'all','[]','[]','[]',0,0,0,100,1,0,0,$now,'2026-12-31','active','u_super',$now]);
+        $cpStmt->execute(['cp_hotdesk','HOTDESK500','₹500 off Hot Desk plan','flat',500,null,'membership','["pl_hot"]','[]','[]',0,0,0,0,1,0,0,$now,'2027-12-31','active','u_super',$now]);
+        $cpStmt->execute(['cp_trial','FREETRIAL7','7 free days on first membership','free_days',7,null,'membership','[]','[]','[]',0,0,1,200,1,0,0,$now,'2027-06-30','active','u_super',$now]);
 
         $this->pdo->commit();
     }
@@ -354,9 +399,13 @@ final class Db
 
     private const JSON_COLS = [
         'amenities' => true, 'features' => true, 'tags' => true, 'customFields' => true, 'photos' => true,
+        'allowedPlanIds' => true, 'allowedBranchIds' => true, 'allowedSeatTypes' => true,
     ];
 
-    private const BOOL_COLS = ['isActive' => true, 'done' => true];
+    private const BOOL_COLS = [
+        'isActive' => true, 'done' => true,
+        'firstPurchaseOnly' => true, 'stackable' => true, 'isReferralCoupon' => true,
+    ];
 
     /** @param array<string,mixed> $row */
     private function decodeRow(string $table, array $row): array
