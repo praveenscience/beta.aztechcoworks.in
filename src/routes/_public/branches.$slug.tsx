@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowRight, CheckCircle2, Clock, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Clock, MapPin, MessageCircle, Phone, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useBranch, usePlans, useCreateLead } from "@/lib/queries";
 import { unsplash, inr, whatsappLink, seatTypeLabels } from "@/lib/format";
@@ -22,12 +22,76 @@ export const Route = createFileRoute("/_public/branches/$slug")({
   component: BranchDetail,
 });
 
+function Lightbox({ photos, initial, branchName, onClose }: {
+  photos: string[];
+  initial: number;
+  branchName: string;
+  onClose: () => void;
+}) {
+  const [idx, setIdx] = useState(initial);
+
+  const prev = useCallback(() => setIdx((i) => (i - 1 + photos.length) % photos.length), [photos.length]);
+  const next = useCallback(() => setIdx((i) => (i + 1) % photos.length), [photos.length]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose, prev, next]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onClick={onClose}>
+      <div className="relative flex h-full w-full items-center justify-center" onClick={(e) => e.stopPropagation()}>
+        {/* Close */}
+        <button onClick={onClose} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white backdrop-blur transition hover:bg-white/20" aria-label="Close">
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Counter */}
+        <span className="absolute left-4 top-4 rounded-full bg-white/10 px-3 py-1 text-sm text-white backdrop-blur">
+          {idx + 1} / {photos.length}
+        </span>
+
+        {/* Prev */}
+        {photos.length > 1 && (
+          <button onClick={prev} className="absolute left-3 z-10 rounded-full bg-white/10 p-2.5 text-white backdrop-blur transition hover:bg-white/20" aria-label="Previous photo">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+        )}
+
+        {/* Image */}
+        <img
+          src={photoSrc(photos[idx], 1600, 1000)}
+          alt={`${branchName} photo ${idx + 1}`}
+          className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+        />
+
+        {/* Next */}
+        {photos.length > 1 && (
+          <button onClick={next} className="absolute right-3 z-10 rounded-full bg-white/10 p-2.5 text-white backdrop-blur transition hover:bg-white/20" aria-label="Next photo">
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function BranchDetail() {
   const { slug } = Route.useParams();
   const { data: branch } = useBranch(slug);
   const { data: plans = [] } = usePlans();
   const createLead = useCreateLead();
   const [form, setForm] = useState({ name: "", email: "", phone: "", planId: "", message: "" });
+  const [lightbox, setLightbox] = useState<number | null>(null);
 
   if (!branch) throw notFound();
 
@@ -74,16 +138,31 @@ function BranchDetail() {
                 <h2 className="text-2xl font-semibold tracking-tight">Gallery</h2>
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {(branch.photos ?? []).map((p, i) => (
-                    <img
+                    <button
                       key={i}
-                      src={photoSrc(p)}
-                      alt={`${branch.name} photo ${i + 1}`}
-                      className="aspect-[4/3] w-full rounded-xl object-cover"
-                      loading="lazy"
-                    />
+                      type="button"
+                      onClick={() => setLightbox(i)}
+                      className="overflow-hidden rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <img
+                        src={photoSrc(p)}
+                        alt={`${branch.name} photo ${i + 1}`}
+                        className="aspect-[4/3] w-full object-cover transition hover:scale-105"
+                        loading="lazy"
+                      />
+                    </button>
                   ))}
                 </div>
               </div>
+            )}
+
+            {lightbox !== null && (branch.photos ?? []).length > 0 && (
+              <Lightbox
+                photos={branch.photos!}
+                initial={lightbox}
+                branchName={branch.name}
+                onClose={() => setLightbox(null)}
+              />
             )}
 
             <div>
