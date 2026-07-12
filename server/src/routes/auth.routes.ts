@@ -72,6 +72,35 @@ router.post("/logout", (req, res) => {
   });
 });
 
+// POST /api/auth/update-profile — edit name, phone, company
+router.post("/update-profile", (req, res) => {
+  if (!req.session.userId) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  const user = db.users.find(req.session.userId);
+  if (!user) {
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+
+  const { name, phone, company } = req.body;
+  const patch: Record<string, unknown> = {};
+
+  if (typeof name === "string" && name.trim()) patch.name = name.trim();
+  if (phone !== undefined) patch.phone = phone;
+  if (company !== undefined) patch.company = company;
+
+  if (Object.keys(patch).length > 0) {
+    db.users.update(user.id, patch);
+  }
+
+  const updated = db.users.find(user.id)!;
+  const { passwordHash, ...safe } = updated;
+  res.json(safe);
+});
+
 // POST /api/auth/change-password — authenticated password change
 router.post("/change-password", (req, res) => {
   if (!req.session.userId) {

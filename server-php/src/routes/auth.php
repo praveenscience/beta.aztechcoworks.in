@@ -72,6 +72,40 @@ $router->post('/api/auth/logout', function () use ($router) {
     return null;
 });
 
+// ─── POST /api/auth/update-profile ──────────────
+
+$router->post('/api/auth/update-profile', function () use ($db, $router) {
+    if (empty($_SESSION['userId'])) {
+        return $router->json(['error' => 'Not authenticated'], 401);
+    }
+
+    $user = $db->find('users', $_SESSION['userId']);
+    if (!$user) {
+        return $router->json(['error' => 'User not found'], 401);
+    }
+
+    $b = body();
+    $patch = [];
+
+    if (isset($b['name']) && trim($b['name']) !== '') {
+        $patch['name'] = trim($b['name']);
+    }
+    if (array_key_exists('phone', $b)) {
+        $patch['phone'] = $b['phone'];
+    }
+    if (array_key_exists('company', $b)) {
+        $patch['company'] = $b['company'];
+    }
+
+    if (!empty($patch)) {
+        $db->update('users', $user['id'], $patch);
+        $user = $db->find('users', $user['id']);
+    }
+
+    $router->json($db->safeUser($user));
+    return null;
+});
+
 // ─── POST /api/auth/change-password ─────────────
 
 $router->post('/api/auth/change-password', function () use ($db, $router) {
